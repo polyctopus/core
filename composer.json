@@ -1,6 +1,6 @@
 {
-  "name": "vendor/polysync-core",
-  "description": "Core library for Polysync multidimensional content",
+  "name": "polyctopus/core",
+  "description": "Core library for polyctopus multidimensional content",
   "type": "library",
   "version": "1.0.0",
   "require": {

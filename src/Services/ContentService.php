@@ -7,6 +7,7 @@ use Polysync\Core\Repositories\ContentRepositoryInterface;
 use Polysync\Core\Repositories\ContentTypeRepositoryInterface;
 use Polysync\Core\Models\ContentType;
 use DateTimeImmutable;
+use InvalidArgumentException;
 
 class ContentService
 {
@@ -21,6 +22,8 @@ class ContentService
 
     public function create(string $id, ContentType $contentType, array $data): Content
     {
+        $this->validateContentData($contentType, $data);
+
         $content = new Content(
             $id,
             $contentType,
@@ -36,6 +39,8 @@ class ContentService
 
     public function update(Content $content, array $data): void
     {
+        $this->validateContentData($content->getContentType(), $data);
+
         $arr = $content->toArray();
         $arr['data'] = $data;
         $arr['updatedAt'] = (new DateTimeImmutable())->format(DATE_ATOM);
@@ -57,5 +62,22 @@ class ContentService
     public function listContentTypes(): array
     {
         return $this->contentTypeRepository->all();
+    }
+
+    /**
+     * Validates the given data array against the ContentType's field definitions.
+     * Throws InvalidArgumentException if validation fails.
+     */
+    private function validateContentData(ContentType $contentType, array $data): void
+    {
+        foreach ($contentType->getFields() as $field) {
+            $code = $field->getCode();
+            if (array_key_exists($code, $data)) {
+                $value = $data[$code];
+                if (!$field->validate($value)) {
+                    throw new InvalidArgumentException("Validation failed for field '{$code}' with value: " . var_export($value, true));
+                }
+            }
+        }
     }
 }
