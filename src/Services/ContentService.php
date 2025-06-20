@@ -12,13 +12,9 @@ use InvalidArgumentException;
 class ContentService
 {
     public function __construct(
-        private ContentRepositoryInterface $repository,
-        private ContentTypeRepositoryInterface $contentTypeRepository
-    )
-    {
-        $this->repository = $repository;
-        $this->contentTypeRepository = $contentTypeRepository;
-    }
+        private readonly ContentRepositoryInterface $repository,
+        private readonly ContentTypeRepositoryInterface $contentTypeRepository
+    ) {}
 
     public function create(string $id, ContentType $contentType, array $data): Content
     {
@@ -58,25 +54,18 @@ class ContentService
     {
         $this->repository->delete($id);
     }
-    
+
     public function listContentTypes(): array
     {
         return $this->contentTypeRepository->all();
     }
 
-    /**
-     * Validates the given data array against the ContentType's field definitions.
-     * Throws InvalidArgumentException if validation fails.
-     */
     private function validateContentData(ContentType $contentType, array $data): void
     {
         foreach ($contentType->getFields() as $field) {
             $code = $field->getCode();
-            if (array_key_exists($code, $data)) {
-                $value = $data[$code];
-                if (!$field->validate($value)) {
-                    throw new InvalidArgumentException("Validation failed for field '{$code}' with value: " . var_export($value, true));
-                }
+            if (array_key_exists($code, $data) && !$field->validate($data[$code])) {
+                throw new InvalidArgumentException("Validation failed for field '{$code}' with value: " . var_export($data[$code], true));
             }
         }
     }

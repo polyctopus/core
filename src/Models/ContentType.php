@@ -5,29 +5,15 @@ use DateTimeImmutable;
 
 class ContentType
 {
-    private string $id;
-    private string $code;
-    private string $label;
-    /** @var ContentField[] */
-    private array $fields;
-    private DateTimeImmutable $createdAt;
-    private DateTimeImmutable $updatedAt;
-
     public function __construct(
-        string $id,
-        string $code,
-        string $label,
-        array $fields = [],
-        ?DateTimeImmutable $createdAt = null,
-        ?DateTimeImmutable $updatedAt = null
-    ) {
-        $this->id = $id;
-        $this->code = $code;
-        $this->label = $label;
-        $this->fields = $fields;
-        $this->createdAt = $createdAt ?? new DateTimeImmutable();
-        $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
-    }
+        public readonly string $id,
+        public string $code,
+        public string $label,
+        /** @var ContentField[] */
+        public array $fields = [],
+        public readonly DateTimeImmutable $createdAt = new DateTimeImmutable(),
+        public DateTimeImmutable $updatedAt = new DateTimeImmutable()
+    ) {}
 
     public function getId(): string
     {
@@ -81,7 +67,7 @@ class ContentType
     {
         $this->fields = array_filter(
             $this->fields,
-            fn(ContentField $f) => $f->getId() !== $fieldId
+            fn(ContentField $f) => $f->id !== $fieldId
         );
         $this->touch();
     }

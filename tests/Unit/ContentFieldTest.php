@@ -18,13 +18,13 @@ it('can construct and serialize a ContentField', function () {
     );
 
     // Test getters
-    expect($field->getId())->toBe('f1')
-        ->and($field->getContentTypeId())->toBe('ct1')
-        ->and($field->getCode())->toBe('price')
-        ->and($field->getLabel())->toBe('Price')
-        ->and(get_class($field->getFieldType()))->toBe(Polysync\Core\Models\FieldTypes\TextFieldType::class)
-        ->and($field->getSettings())->toMatchArray(['min' => 0, 'max' => 100])
-        ->and($field->getSortOrder())->toBe(10);
+    expect($field->id)->toBe('f1')
+        ->and($field->contentTypeId)->toBe('ct1')
+        ->and($field->code)->toBe('price')
+        ->and($field->label)->toBe('Price')
+        ->and(get_class($field->fieldType))->toBe(Polysync\Core\Models\FieldTypes\TextFieldType::class)
+        ->and($field->settings)->toMatchArray(['min' => 0, 'max' => 100])
+        ->and($field->sortOrder)->toBe(10);
 
     // Test toArray()/fromArray()
     $arr = $field->toArray();

@@ -28,9 +28,9 @@ it('can save and retrieve ContentType via repository', function () {
     $retrieved = $repo->find('ct1');
 
     expect($retrieved)->toBeInstanceOf(ContentType::class)
-        ->and($retrieved->getId())->toBe('ct1')
+        ->and($retrieved->id)->toBe('ct1')
         ->and($retrieved->getFields())->toHaveCount(1)
-        ->and($retrieved->getFields()[0]->getCode())->toBe('title');
+        ->and($retrieved->getFields()[0]->code)->toBe('title');
 });
 
 it('returns null when content type not found', function () {

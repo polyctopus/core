@@ -19,9 +19,9 @@ it('can construct and manipulate a ContentType', function () {
         fields: []
     );
 
-    expect($type->getId())->toBe('ct1')
-        ->and($type->getCode())->toBe('articles')
-        ->and($type->getLabel())->toBe('Articles');
+    expect($type->id)->toBe('ct1')
+        ->and($type->code)->toBe('articles')
+        ->and($type->label)->toBe('Articles');
 
     // Test adding a field
     $type->addField($field);

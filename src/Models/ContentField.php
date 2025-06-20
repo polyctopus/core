@@ -13,89 +13,21 @@ class ContentField
 {
     public const FIELD_TYPE_TEXT = 'Text';
 
-    private string $id;
-    private string $contentTypeId;
-    private string $code;
-    private string $label;
-    private FieldTypeInterface $fieldType;
-    private array $settings;
-    private int $sortOrder;
-    private DateTimeImmutable $createdAt;
-    private DateTimeImmutable $updatedAt;
-
     public function __construct(
-        string $id,
-        string $contentTypeId,
-        string $code,
-        string $label,
-        FieldTypeInterface $fieldType,
-        array $settings = [],
-        int $sortOrder = 0,
-        ?DateTimeImmutable $createdAt = null,
-        ?DateTimeImmutable $updatedAt = null
-    ) {
-        $this->id = $id;
-        $this->contentTypeId = $contentTypeId;
-        $this->code = $code;
-        $this->label = $label;
-        $this->fieldType = $fieldType;
-        $this->settings = $settings;
-        $this->sortOrder = $sortOrder;
-        $this->createdAt = $createdAt ?? new DateTimeImmutable();
-        $this->updatedAt = $updatedAt ?? new DateTimeImmutable();
-    }
+        public readonly string $id,
+        public readonly string $contentTypeId,
+        public readonly string $code,
+        public readonly string $label,
+        public readonly FieldTypeInterface $fieldType,
+        public readonly array $settings = [],
+        public readonly int $sortOrder = 0,
+        public readonly DateTimeImmutable $createdAt = new DateTimeImmutable(),
+        public DateTimeImmutable $updatedAt = new DateTimeImmutable()
+    ) {}
 
-    public function getId(): string
+    public function validate(mixed $value): bool
     {
-        return $this->id;
-    }
-
-    public function getContentTypeId(): string
-    {
-        return $this->contentTypeId;
-    }
-
-    public function getCode(): string
-    {
-        return $this->code;
-    }
-
-    public function getLabel(): string
-    {
-        return $this->label;
-    }
-
-    public function getFieldType(): FieldTypeInterface
-    {
-        return $this->fieldType;
-    }
-
-    public function getSettings(): array
-    {
-        return $this->settings;
-    }
-
-    public function getSortOrder(): int
-    {
-        return $this->sortOrder;
-    }
-
-    public static function getAllowedFieldTypes(): array
-    {
-        return [
-            self::FIELD_TYPE_TEXT,
-            // Add more types here as you define them
-        ];
-    }
-
-    public function validate($value): bool
-    {
-       return $this->fieldType->validate($value, $this->settings);
-    }
-
-    private function touch(): void
-    {
-        $this->updatedAt = new DateTimeImmutable();
+        return $this->fieldType->validate($value, $this->settings);
     }
 
     public function toArray(): array
