@@ -1,15 +1,15 @@
 <?php
 
-namespace Polysync\Core\Services;
+namespace Polyctopus\Core\Services;
 
-use Polysync\Core\Models\Content;
-use Polysync\Core\Repositories\ContentRepositoryInterface;
-use Polysync\Core\Repositories\ContentTypeRepositoryInterface;
-use Polysync\Core\Models\ContentType;
+use Polyctopus\Core\Models\Content;
+use Polyctopus\Core\Repositories\ContentRepositoryInterface;
+use Polyctopus\Core\Repositories\ContentTypeRepositoryInterface;
+use Polyctopus\Core\Models\ContentType;
 
 use DateTimeImmutable;
 use InvalidArgumentException;
-use Polysync\Core\Models\ContentStatus;
+use Polyctopus\Core\Models\ContentStatus;
 
 class ContentService
 {

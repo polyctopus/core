@@ -2,13 +2,13 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Polysync\Core\Models\ContentType;
-use Polysync\Core\Models\ContentField;
-use Polysync\Core\Models\ContentStatus;
-use Polysync\Core\Models\FieldTypes\TextFieldType;
-use Polysync\Core\Repositories\InMemory\InMemoryContentRepository;
-use Polysync\Core\Repositories\InMemory\InMemoryContentTypeRepository;
-use Polysync\Core\Services\ContentService;
+use Polyctopus\Core\Models\ContentType;
+use Polyctopus\Core\Models\ContentField;
+use Polyctopus\Core\Models\ContentStatus;
+use Polyctopus\Core\Models\FieldTypes\TextFieldType;
+use Polyctopus\Core\Repositories\InMemory\InMemoryContentRepository;
+use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
+use Polyctopus\Core\Services\ContentService;
 
 // Setup repositories
 $contentRepo = new InMemoryContentRepository();

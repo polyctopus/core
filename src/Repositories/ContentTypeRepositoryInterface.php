@@ -1,7 +1,7 @@
 <?php
-namespace Polysync\Core\Repositories;
+namespace Polyctopus\Core\Repositories;
 
-use Polysync\Core\Models\ContentType;
+use Polyctopus\Core\Models\ContentType;
 
 interface ContentTypeRepositoryInterface
 {

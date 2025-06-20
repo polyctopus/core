@@ -1,6 +1,6 @@
-# Polysync Core
+# Polyctopus Core
 
-Polysync Core is a lightweight PHP library for managing structured content and content types, inspired by headless CMS concepts. It provides a flexible, type-safe way to define content models, fields, and to manage content instances in your application.
+Polyctopus Core is a lightweight PHP library for managing structured content and content types, inspired by headless CMS concepts. It provides a flexible, type-safe way to define content models, fields, and to manage content instances in your application.
 
 ## Features
 
@@ -21,19 +21,19 @@ Polysync Core is a lightweight PHP library for managing structured content and c
 Install via Composer (assuming you have a `composer.json`):
 
 ```bash
-composer require polysync/core
+composer require Polyctopus/core
 ```
 
 ## Usage Example
 
 ```php
-use Polysync\Core\Models\ContentType;
-use Polysync\Core\Models\ContentField;
-use Polysync\Core\Models\FieldTypes\TextFieldType;
-use Polysync\Core\Models\ContentStatus;
-use Polysync\Core\Repositories\InMemory\InMemoryContentRepository;
-use Polysync\Core\Repositories\InMemory\InMemoryContentTypeRepository;
-use Polysync\Core\Services\ContentService;
+use Polyctopus\Core\Models\ContentType;
+use Polyctopus\Core\Models\ContentField;
+use Polyctopus\Core\Models\FieldTypes\TextFieldType;
+use Polyctopus\Core\Models\ContentStatus;
+use Polyctopus\Core\Repositories\InMemory\InMemoryContentRepository;
+use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
+use Polyctopus\Core\Services\ContentService;
 
 // Setup repositories
 $contentRepo = new InMemoryContentRepository();

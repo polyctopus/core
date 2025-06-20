@@ -1,6 +1,6 @@
 <?php
 
-namespace Polysync\Core\Models\FieldTypes;
+namespace Polyctopus\Core\Models\FieldTypes;
 
 class TextFieldType implements FieldTypeInterface
 {

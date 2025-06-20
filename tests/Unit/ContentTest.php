@@ -1,11 +1,11 @@
 <?php
 
-use Polysync\Core\Models\Content;
-use Polysync\Core\Models\ContentType;
-use Polysync\Core\Models\ContentField;
-use Polysync\Core\Models\ContentStatus;
-use Polysync\Core\Models\FieldTypes\TextFieldType;
-use Polysync\Core\Repositories\InMemory\InMemoryContentRepository;
+use Polyctopus\Core\Models\Content;
+use Polyctopus\Core\Models\ContentType;
+use Polyctopus\Core\Models\ContentField;
+use Polyctopus\Core\Models\ContentStatus;
+use Polyctopus\Core\Models\FieldTypes\TextFieldType;
+use Polyctopus\Core\Repositories\InMemory\InMemoryContentRepository;
 
 it('can save and retrieve Content via repository', function () {
     $repo = new InMemoryContentRepository();

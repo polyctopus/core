@@ -1,7 +1,7 @@
 <?php
 
-use Polysync\Core\Models\ContentType;
-use Polysync\Core\Models\ContentField;
+use Polyctopus\Core\Models\ContentType;
+use Polyctopus\Core\Models\ContentField;
 
 it('can construct and manipulate a ContentType', function () {
     $field = new ContentField(
@@ -9,7 +9,7 @@ it('can construct and manipulate a ContentType', function () {
         contentTypeId: 'ct1',
         code: 'name',
         label: 'Name',
-        fieldType: new Polysync\Core\Models\FieldTypes\TextFieldType()
+        fieldType: new Polyctopus\Core\Models\FieldTypes\TextFieldType()
     );
 
     $type = new ContentType(

@@ -1,7 +1,7 @@
 <?php
 // tests/ContentFieldTest.php
 
-use Polysync\Core\Models\ContentField;
+use Polyctopus\Core\Models\ContentField;
 
 it('can construct and serialize a ContentField', function () {
     $now = new DateTimeImmutable();
@@ -10,7 +10,7 @@ it('can construct and serialize a ContentField', function () {
         contentTypeId: 'ct1',
         code: 'price',
         label: 'Price',
-        fieldType: new Polysync\Core\Models\FieldTypes\TextFieldType(), 
+        fieldType: new Polyctopus\Core\Models\FieldTypes\TextFieldType(), 
         settings: ['min' => 0, 'max' => 100],
         sortOrder: 10,
         createdAt: $now,
@@ -22,7 +22,7 @@ it('can construct and serialize a ContentField', function () {
         ->and($field->contentTypeId)->toBe('ct1')
         ->and($field->code)->toBe('price')
         ->and($field->label)->toBe('Price')
-        ->and(get_class($field->fieldType))->toBe(Polysync\Core\Models\FieldTypes\TextFieldType::class)
+        ->and(get_class($field->fieldType))->toBe(Polyctopus\Core\Models\FieldTypes\TextFieldType::class)
         ->and($field->settings)->toMatchArray(['min' => 0, 'max' => 100])
         ->and($field->sortOrder)->toBe(10);
 
@@ -40,7 +40,7 @@ it('validates a Text field type', function () {
         contentTypeId: 'ct1',
         code: 'title',
         label: 'Title',
-        fieldType: new Polysync\Core\Models\FieldTypes\TextFieldType(),
+        fieldType: new Polyctopus\Core\Models\FieldTypes\TextFieldType(),
         settings: ['maxLength' => 5]
     );
 

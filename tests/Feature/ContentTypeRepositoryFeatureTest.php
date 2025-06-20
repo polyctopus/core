@@ -1,8 +1,8 @@
 <?php
 
-use Polysync\Core\Models\ContentType;
-use Polysync\Core\Models\ContentField;
-use Polysync\Core\Repositories\InMemory\InMemoryContentTypeRepository;
+use Polyctopus\Core\Models\ContentType;
+use Polyctopus\Core\Models\ContentField;
+use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
 
 it('can save and retrieve ContentType via repository', function () {
     $repo = new InMemoryContentTypeRepository();
@@ -12,7 +12,7 @@ it('can save and retrieve ContentType via repository', function () {
         'ct1',
         'title',
         'Title',
-        new Polysync\Core\Models\FieldTypes\TextFieldType(),
+        new Polyctopus\Core\Models\FieldTypes\TextFieldType(),
         ['maxLength' => 255],
     );
 

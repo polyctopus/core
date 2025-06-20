@@ -1,11 +1,11 @@
 <?php
 
-use Polysync\Core\Services\ContentService;
-use Polysync\Core\Repositories\InMemory\InMemoryContentRepository;
-use Polysync\Core\Repositories\InMemory\InMemoryContentTypeRepository;
-use Polysync\Core\Models\Content;
-use Polysync\Core\Models\ContentStatus;
-use Polysync\Core\Models\ContentType;
+use Polyctopus\Core\Services\ContentService;
+use Polyctopus\Core\Repositories\InMemory\InMemoryContentRepository;
+use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
+use Polyctopus\Core\Models\Content;
+use Polyctopus\Core\Models\ContentStatus;
+use Polyctopus\Core\Models\ContentType;
 
 it('can create content via ContentService', function () {
     $repo = new InMemoryContentRepository();

@@ -1,9 +1,9 @@
 <?php
 // src/Models/ContentField.php
-namespace Polysync\Core\Models;
+namespace Polyctopus\Core\Models;
 
 use DateTimeImmutable;
-use Polysync\Core\Models\FieldTypes\FieldTypeInterface;
+use Polyctopus\Core\Models\FieldTypes\FieldTypeInterface;
 
 /**
  * Represents a field in a content type.
@@ -49,7 +49,7 @@ class ContentField
     private function getFieldTypeName(): string
     {
         return match (get_class($this->fieldType)) {
-            \Polysync\Core\Models\FieldTypes\TextFieldType::class => self::FIELD_TYPE_TEXT,
+            \Polyctopus\Core\Models\FieldTypes\TextFieldType::class => self::FIELD_TYPE_TEXT,
             // weitere Typen hier ergänzen
             default => throw new \InvalidArgumentException('Unknown field type class'),
         };
@@ -59,7 +59,7 @@ class ContentField
     {
         // Factory für FieldType-Objekte
         $fieldType = match ($data['fieldType']) {
-            self::FIELD_TYPE_TEXT => new \Polysync\Core\Models\FieldTypes\TextFieldType(),
+            self::FIELD_TYPE_TEXT => new \Polyctopus\Core\Models\FieldTypes\TextFieldType(),
             default => throw new \InvalidArgumentException('Unknown field type'),
         };
 

@@ -1,9 +1,9 @@
 <?php
 
-namespace Polysync\Core\Repositories\InMemory;
+namespace Polyctopus\Core\Repositories\InMemory;
 
-use Polysync\Core\Models\Content;
-use Polysync\Core\Repositories\ContentRepositoryInterface;
+use Polyctopus\Core\Models\Content;
+use Polyctopus\Core\Repositories\ContentRepositoryInterface;
 
 class InMemoryContentRepository implements ContentRepositoryInterface
 {

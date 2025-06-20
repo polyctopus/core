@@ -1,5 +1,5 @@
 <?php
-namespace Polysync\Core\Models;
+namespace Polyctopus\Core\Models;
 
 use DateTimeImmutable;
 
