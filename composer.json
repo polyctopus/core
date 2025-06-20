@@ -1,0 +1,23 @@
+{
+  "name": "vendor/polysync-core",
+  "description": "Core library for Polysync multidimensional content",
+  "type": "library",
+  "version": "1.0.0",
+  "require": {
+    "php": ">=8.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "Polysync\\Core\\": "src/",
+      "Tests\\": "tests/"
+    }
+  },
+  "require-dev": {
+    "pestphp/pest": "^3.8"
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
+}
