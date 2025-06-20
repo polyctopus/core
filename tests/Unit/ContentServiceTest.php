@@ -4,6 +4,7 @@ use Polysync\Core\Services\ContentService;
 use Polysync\Core\Repositories\InMemory\InMemoryContentRepository;
 use Polysync\Core\Repositories\InMemory\InMemoryContentTypeRepository;
 use Polysync\Core\Models\Content;
+use Polysync\Core\Models\ContentStatus;
 use Polysync\Core\Models\ContentType;
 
 it('can create content via ContentService', function () {
@@ -28,7 +29,7 @@ it('can update content via ContentService', function () {
 
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
     $content = $service->create('c2', $contentType, ['title' => 'Old']);
-    $service->update($content, ['title' => 'New']);
+    $service->update($content,ContentStatus::Published, ['title' => 'New']);
 
     $updated = $repo->find('c2');
     expect($updated)->toBeInstanceOf(Content::class)

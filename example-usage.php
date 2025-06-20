@@ -4,6 +4,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use Polysync\Core\Models\ContentType;
 use Polysync\Core\Models\ContentField;
+use Polysync\Core\Models\ContentStatus;
 use Polysync\Core\Models\FieldTypes\TextFieldType;
 use Polysync\Core\Repositories\InMemory\InMemoryContentRepository;
 use Polysync\Core\Repositories\InMemory\InMemoryContentTypeRepository;
@@ -36,14 +37,21 @@ $contentTypeRepo->save($articleType);
 // Create ContentService
 $service = new ContentService($contentRepo, $contentTypeRepo);
 
-// Create a new Content
+// Create a new Content (valid)
 $content = $service->create('c1', $articleType, ['title' => 'Hello World!']);
 echo "Created content: " . print_r($content->toArray(), true) . PHP_EOL;
 
-// Update Content
-$service->update($content, ['title' => 'Updated Title']);
+// Update Content (valid and status change)
+$service->update($content, ContentStatus::Published, ['title' => 'Updated Title']);
 $updated = $service->find('c1');
 echo "Updated content: " . print_r($updated->toArray(), true) . PHP_EOL;
+
+// Try to update with invalid data (should throw exception)
+try {
+    $service->update($content, ContentStatus::Published, ['title' => str_repeat('A', 300)]);
+} catch (\InvalidArgumentException $e) {
+    echo "Validation failed as expected: " . $e->getMessage() . PHP_EOL;
+}
 
 // List all ContentTypes
 $contentTypes = $service->listContentTypes();

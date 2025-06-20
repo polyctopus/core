@@ -6,8 +6,10 @@ use Polysync\Core\Models\Content;
 use Polysync\Core\Repositories\ContentRepositoryInterface;
 use Polysync\Core\Repositories\ContentTypeRepositoryInterface;
 use Polysync\Core\Models\ContentType;
+
 use DateTimeImmutable;
 use InvalidArgumentException;
+use Polysync\Core\Models\ContentStatus;
 
 class ContentService
 {
@@ -23,24 +25,24 @@ class ContentService
         $content = new Content(
             $id,
             $contentType,
+            ContentStatus::Draft,
             $data,
-            'draft',
             new DateTimeImmutable(),
-            new DateTimeImmutable()
+            new DateTimeImmutable(),
         );
 
         $this->repository->save($content);
         return $content;
     }
 
-    public function update(Content $content, array $data): void
+    public function update(Content $content, ContentStatus $contentStatus, array $data): void
     {
         $this->validateContentData($content->getContentType(), $data);
 
         $arr = $content->toArray();
         $arr['data'] = $data;
+        $arr['status'] = $contentStatus;
         $arr['updatedAt'] = (new DateTimeImmutable())->format(DATE_ATOM);
-
         $updated = Content::fromArray($arr);
         $this->repository->save($updated);
     }
@@ -63,7 +65,7 @@ class ContentService
     private function validateContentData(ContentType $contentType, array $data): void
     {
         foreach ($contentType->getFields() as $field) {
-            $code = $field->getCode();
+            $code = $field->code;
             if (array_key_exists($code, $data) && !$field->validate($data[$code])) {
                 throw new InvalidArgumentException("Validation failed for field '{$code}' with value: " . var_export($data[$code], true));
             }

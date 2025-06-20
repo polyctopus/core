@@ -3,6 +3,7 @@
 use Polysync\Core\Models\Content;
 use Polysync\Core\Models\ContentType;
 use Polysync\Core\Models\ContentField;
+use Polysync\Core\Models\ContentStatus;
 use Polysync\Core\Models\FieldTypes\TextFieldType;
 use Polysync\Core\Repositories\InMemory\InMemoryContentRepository;
 
@@ -33,7 +34,9 @@ it('can save and retrieve Content via repository', function () {
             'price' => 99.99,
             'status' => 'published'
         ],
-        status: 'published'
+        status: ContentStatus::Published,
+        createdAt: new DateTimeImmutable(),
+        updatedAt: new DateTimeImmutable()
     );
 
     $repo->save($content);
@@ -45,10 +48,9 @@ it('can save and retrieve Content via repository', function () {
         ->and($retrieved->getContentType()->getId())->toBe('ct1')
         ->and($retrieved->getData())->toMatchArray([
             'title' => 'Test Hotel',
-            'price' => 99.99,
-            'status' => 'published'
+            'price' => 99.99
         ])
-        ->and($retrieved->getStatus())->toBe('published');
+        ->and($retrieved->getStatus())->toBe(ContentStatus::Published);
 });
 
 it('returns null when content not found', function () {
@@ -71,7 +73,9 @@ it('can delete content', function () {
         id: 'c2',
         contentType: $contentType,
         data: ['title' => 'To be deleted'],
-        status: 'draft'
+        status: ContentStatus::Draft,
+        createdAt: new DateTimeImmutable(),
+        updatedAt: new DateTimeImmutable()
     );
 
     $repo->save($content);
