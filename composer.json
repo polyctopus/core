@@ -2,7 +2,13 @@
   "name": "polyctopus/core",
   "description": "Core library for polyctopus multidimensional content",
   "type": "library",
-  "version": "1.0.0",
+  "keywords": [
+    "polyctopus",
+    "multidimensional",
+    "content",
+    "library"
+  ],
+  "license": "LGPL-3.0-or-later",
   "require": {
     "php": ">=8.2"
   },
