@@ -3,8 +3,10 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 use Polyctopus\Core\Models\ContentStatus;
+use Polyctopus\Core\Models\ContentVariant;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentRepository;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
+use Polyctopus\Core\Repositories\InMemory\InMemoryContentVariantRepository;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentVersionRepository;
 use Polyctopus\Core\Services\ContentService;
 use Polyctopus\Core\Services\TestFactory;
@@ -12,6 +14,7 @@ use Polyctopus\Core\Services\TestFactory;
 // Setup repositories
 $contentRepo = new InMemoryContentRepository();
 $contentTypeRepo = new InMemoryContentTypeRepository();
+$contentVariantRepo = new InMemoryContentVariantRepository();
 $contentVersionRepo = new InMemoryContentVersionRepository();
 
 // Create a ContentType (e.g. "Article" with a "title" field using the TestFactory)
@@ -21,11 +24,16 @@ $contentType = TestFactory::contentTypeWithTextField('article');
 $contentTypeRepo->save($contentType);
 
 // Create ContentService
-$service = new ContentService($contentRepo, $contentTypeRepo, $contentVersionRepo);
+$service = new ContentService(
+    $contentRepo, 
+    $contentTypeRepo,
+    $contentVersionRepo,
+    $contentVariantRepo
+);
 
 // Create a new Content (invalid)
 try {
-    $content = $service->create('c1', $articleType, ['title' => str_repeat('A', 300)]);
+    $content = $service->create('c1', $contentType, ['title' => str_repeat('A', 300)]);
 
 } catch (\Polyctopus\Core\Models\ValidationException $e) {
     foreach ($e->getErrors() as $error) {
@@ -34,7 +42,7 @@ try {
 }
 
 // Create a new Content (valid one)
-$content = $service->create('c1', $articleType, ['title' => str_repeat('A', 5)]);
+$content = $service->create('c1', $contentType, ['title' => str_repeat('A', 5)]);
 
 echo "Created content: " . print_r($content->toArray(), true) . PHP_EOL;
 
@@ -56,6 +64,7 @@ foreach ($versions as $version) {
 }
 
 // Rollback auf die erste Version
+echo "Rolling back to the first version..." . PHP_EOL;
 $firstVersion = reset($versions);
 if ($firstVersion) {
     $service->rollback('c1', $firstVersion->getId());
@@ -63,7 +72,30 @@ if ($firstVersion) {
     echo "Content after rollback: " . print_r($rolledBack->toArray(), true) . PHP_EOL;
 }
 
+
+// Create a brand content variant
+// (e.g. for a specific brand dimension)
+echo "Creating content variant for brand dimension..." . PHP_EOL;
+$variant = new ContentVariant(
+    id: 'v1',
+    contentId: 'c1',
+    dimension: 'brand_a',
+    overrides: ['title' => 'Brand A Title']
+);
+$contentVariantRepo->save($variant);
+
+// resolve content with variant overrides
+$resolvedBrandA = $service->resolveContentWithVariant('c1', 'brand_a');
+echo "Resolved content for dimension 'brand_a': " . print_r($resolvedBrandA, true) . PHP_EOL;
+
+// resolve content without variant (default)
+$resolvedDefault = $service->resolveContentWithVariant('c1', 'brand_b');
+echo "Resolved content for dimension 'brand_b' (no variant): " . print_r($resolvedDefault, true) . PHP_EOL;
+
+
+
 // List all ContentTypes
+echo "Listing all content types:" . PHP_EOL;
 $contentTypes = $service->listContentTypes();
 echo "Available content types:" . PHP_EOL;
 foreach ($contentTypes as $ct) {

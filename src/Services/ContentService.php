@@ -8,15 +8,18 @@ use Polyctopus\Core\Models\ContentVersion;
 use Polyctopus\Core\Models\ContentType;
 use Polyctopus\Core\Repositories\ContentRepositoryInterface;
 use Polyctopus\Core\Repositories\ContentTypeRepositoryInterface;
+use Polyctopus\Core\Repositories\ContentVariantRepositoryInterface;
 use Polyctopus\Core\Repositories\ContentVersionRepositoryInterface;
 use DateTimeImmutable;
+
 
 class ContentService
 {
     public function __construct(
         private readonly ContentRepositoryInterface $repository,
         private readonly ContentTypeRepositoryInterface $contentTypeRepository,
-        private readonly ContentVersionRepositoryInterface $contentVersionRepository
+        private readonly ContentVersionRepositoryInterface $contentVersionRepository,
+        private readonly ContentVariantRepositoryInterface $contentVariantRepository
     ) {}
 
     public function create(string $id, ContentType $contentType, array $data): Content
@@ -108,6 +111,20 @@ class ContentService
         $this->repository->save($content);
     }
 
+    public function resolveContentWithVariant(string $contentId, string $dimension): ?array
+    {
+        $content = $this->repository->find($contentId);
+        if (!$content) {
+            return null;
+        }
+        $variant = $this->contentVariantRepository->findByContentAndDimension($contentId, $dimension);
+
+        $data = $content->getData();
+        if ($variant) {
+            $data = array_merge($data, $variant->getOverrides());
+        }
+        return $data;
+    }
 
     private function validateContentData(ContentType $contentType, array $data): void
     {
