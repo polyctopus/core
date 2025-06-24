@@ -3,13 +3,17 @@
 use Polyctopus\Core\Services\ContentService;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentRepository;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
+use Polyctopus\Core\Repositories\InMemory\InMemoryContentVersionRepository;
 use Polyctopus\Core\Models\Content;
 use Polyctopus\Core\Models\ContentStatus;
 use Polyctopus\Core\Models\ContentType;
+use Polyctopus\Core\Models\ContentField;
+use Polyctopus\Core\Models\FieldTypes\TextFieldType;
+
 
 it('can create content via ContentService', function () {
     $repo = new InMemoryContentRepository();
-    $service = new ContentService($repo, new InMemoryContentTypeRepository());
+    $service = new ContentService($repo, new InMemoryContentTypeRepository(), new InMemoryContentVersionRepository());
 
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
     $content = $service->create('c1', $contentType, ['title' => 'Test']);
@@ -23,9 +27,7 @@ it('can create content via ContentService', function () {
 
 it('can update content via ContentService', function () {
     $repo = new InMemoryContentRepository();
-     $service = new ContentService($repo, new InMemoryContentTypeRepository());
-
-
+    $service = new ContentService($repo, new InMemoryContentTypeRepository(), new InMemoryContentVersionRepository());
 
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
     $content = $service->create('c2', $contentType, ['title' => 'Old']);
@@ -38,8 +40,7 @@ it('can update content via ContentService', function () {
 
 it('can find content via ContentService', function () {
     $repo = new InMemoryContentRepository();
-    $service = new ContentService($repo, new InMemoryContentTypeRepository());
-
+    $service = new ContentService($repo, new InMemoryContentTypeRepository(), new InMemoryContentVersionRepository());
 
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
     $service->create('c3', $contentType, ['foo' => 'bar']);
@@ -51,7 +52,7 @@ it('can find content via ContentService', function () {
 
 it('can delete content via ContentService', function () {
     $repo = new InMemoryContentRepository();
-     $service = new ContentService($repo, new InMemoryContentTypeRepository());
+    $service = new ContentService($repo, new InMemoryContentTypeRepository(), new InMemoryContentVersionRepository());
 
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
     $service->create('c4', $contentType, ['x' => 1]);
@@ -65,13 +66,18 @@ it('can delete content via ContentService', function () {
 it('can list all content types via ContentService', function () {
     $repo = new InMemoryContentRepository();
     $contentTypeRepo = new InMemoryContentTypeRepository();
+    $contentVersionRepo = new InMemoryContentVersionRepository();
 
     $type1 = new ContentType('ct1', 'Type 1', 'Label 1');
     $type2 = new ContentType('ct2', 'Type 2', 'Label 2');
     $contentTypeRepo->save($type1);
     $contentTypeRepo->save($type2);
 
-    $service = new ContentService($repo, $contentTypeRepo);
+    $service = new ContentService(
+        $repo, 
+        $contentTypeRepo, 
+        $contentVersionRepo
+    );
 
     $types = $service->listContentTypes();
 
@@ -83,4 +89,100 @@ it('can list all content types via ContentService', function () {
         ->and($types[1])->toBeInstanceOf(ContentType::class)
         ->and($ids)->toContain('ct1')
         ->and($ids)->toContain('ct2');
+});
+
+it('throws exception if content data does not match field validation on create', function () {
+    $repo = new InMemoryContentRepository();
+    $contentTypeRepo = new InMemoryContentTypeRepository();
+    $contentVersionRepo = new InMemoryContentVersionRepository();
+
+    $field = new ContentField(
+        id: 'f1',
+        contentTypeId: 'ct1',
+        code: 'title',
+        label: 'Title',
+        fieldType: new TextFieldType(),
+        settings: ['maxLength' => 5]
+    );
+    $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
+    $service = new ContentService($repo, $contentTypeRepo, $contentVersionRepo);
+
+    expect(fn() => $service->create('c5', $contentType, ['title' => 'Too long for field']))
+        ->toThrow(InvalidArgumentException::class);
+});
+
+it('throws exception if content data does not match field validation on update', function () {
+    $repo = new InMemoryContentRepository();
+    $contentTypeRepo = new InMemoryContentTypeRepository();
+    $contentVersionRepo = new InMemoryContentVersionRepository();
+
+    $field = new ContentField(
+        id: 'f1',
+        contentTypeId: 'ct1',
+        code: 'title',
+        label: 'Title',
+        fieldType: new TextFieldType(),
+        settings: ['maxLength' => 5]
+    );
+    $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
+    $service = new ContentService($repo, $contentTypeRepo, $contentVersionRepo);
+
+    $content = $service->create('c6', $contentType, ['title' => 'Short']);
+    expect(fn() => $service->update($content, ContentStatus::Draft, ['title' => 'Too long for field']))
+        ->toThrow(InvalidArgumentException::class);
+});
+
+it('creates a version entry when updating content', function () {
+    $repo = new InMemoryContentRepository();
+    $contentTypeRepo = new InMemoryContentTypeRepository();
+    $contentVersionRepo = new InMemoryContentVersionRepository();
+
+    $field = new ContentField(
+        id: 'f1',
+        contentTypeId: 'ct1',
+        code: 'title',
+        label: 'Title',
+        fieldType: new TextFieldType(),
+        settings: ['maxLength' => 255]
+    );
+    $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
+    $service = new ContentService($repo, $contentTypeRepo, $contentVersionRepo);
+    $content = $service->create('c7', $contentType, ['title' => 'Original']);
+
+    $service->update($content, ContentStatus::Published, ['title' => 'Changed']);
+
+    $versions = $contentVersionRepo->all();
+    expect($versions)->toBeArray()
+        ->and(count($versions))->toBeGreaterThan(0)
+        ->and($versions[array_key_first($versions)])->getSnapshot()->toMatchArray(['title' => 'Original'])
+        ->and($versions[array_key_first(array_slice($versions, 1, 1, true))])->getDiff()->toBe(json_encode(['title' => 'Changed']));
+});
+
+it('can rollback content to a previous version', function () {
+    $repo = new InMemoryContentRepository();
+    $contentTypeRepo = new InMemoryContentTypeRepository();
+    $contentVersionRepo = new InMemoryContentVersionRepository();
+
+    $field = new ContentField(
+        id: 'f1',
+        contentTypeId: 'ct1',
+        code: 'title',
+        label: 'Title',
+        fieldType: new TextFieldType(),
+        settings: ['maxLength' => 255]
+    );
+    $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
+    $service = new ContentService($repo, $contentTypeRepo, $contentVersionRepo);
+
+    $content = $service->create('c8', $contentType, ['title' => 'First']);
+    $service->update($content, ContentStatus::Published, ['title' => 'Second']);
+    $service->update($content, ContentStatus::Published, ['title' => 'Third']);
+
+    // Simulate rollback: get first version and restore its snapshot
+    $versions = $contentVersionRepo->all();
+    $firstVersion = $versions[array_key_first($versions)];
+    $service->update($content, ContentStatus::Published, $firstVersion->getSnapshot());
+
+    $rolledBack = $repo->find('c8');
+    expect($rolledBack->getData())->toMatchArray(['title' => 'First']);
 });
