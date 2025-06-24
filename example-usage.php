@@ -5,10 +5,10 @@ require_once __DIR__ . '/vendor/autoload.php';
 use Polyctopus\Core\Models\ContentStatus;
 use Polyctopus\Core\Models\ContentVariant;
 use Polyctopus\Core\Services\TestFactory;
-use Polyctopus\Core\Services\ContentServiceFactory;
+use Polyctopus\Core\Services\InMemoryContentServiceFactory;
 
 // Create ContentService
-$service = ContentServiceFactory::create();
+$service = InMemoryContentServiceFactory::create();
 
 // Create a ContentType (e.g. "Article" with a "title" field using the TestFactory)
 $contentType = TestFactory::contentTypeWithTextField('article');

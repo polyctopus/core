@@ -8,7 +8,7 @@ use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentVariantRepository;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentVersionRepository;
 
-class ContentServiceFactory
+class InMemoryContentServiceFactory
 {
     /**
      * Creates an instance of ContentService with in-memory repositories.
