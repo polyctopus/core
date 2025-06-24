@@ -28,67 +28,7 @@ composer require polyctopus/core
 
 ## Usage Example
 
-```php
-use Polyctopus\Core\Models\ContentType;
-use Polyctopus\Core\Models\ContentField;
-use Polyctopus\Core\Models\FieldTypes\TextFieldType;
-use Polyctopus\Core\Models\ContentStatus;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentRepository;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentVersionRepository;
-use Polyctopus\Core\Services\ContentService;
-
-// Setup repositories
-$contentRepo = new InMemoryContentRepository();
-$contentTypeRepo = new InMemoryContentTypeRepository();
-$contentVersionRepo = new InMemoryContentVersionRepository();
-
-// Define a content type
-$titleField = new ContentField(
-    id: 'f1',
-    contentTypeId: 'article',
-    code: 'title',
-    label: 'Title',
-    fieldType: new TextFieldType(),
-    settings: ['maxLength' => 255]
-);
-
-$articleType = new ContentType(
-    id: 'article',
-    code: 'article',
-    label: 'Article',
-    fields: [$titleField]
-);
-
-$contentTypeRepo->save($articleType);
-
-// Use the ContentService
-$service = new ContentService($contentRepo, $contentTypeRepo, $contentVersionRepo);
-
-// Create content (status defaults to Draft, creates initial version)
-$content = $service->create('c1', $articleType, ['title' => 'Hello World!']);
-
-// Update content and set status (creates a new version)
-$service->update($content, ContentStatus::Published, ['title' => 'Updated Title']);
-
-// Further updates create more versions
-$service->update($content, ContentStatus::Published, ['title' => 'Second Version']);
-
-// List all content types
-$contentTypes = $service->listContentTypes();
-
-// Access content versions (example for in-memory repo)
-$versions = $contentVersionRepo->findByEntity('content', 'c1');
-
-// Rollback to a previous version (using the first version's ID)
-$firstVersion = reset($versions);
-if ($firstVersion) {
-    $service->rollback('c1', $firstVersion->getId());
-}
-
-// Delete content
-$service->delete('c1');
-```
+Simply have a look at the `examples` directory for a complete example of how to use the library. 
 
 ## Versioning & Rollback
 
@@ -104,9 +44,11 @@ When creating or updating content, the service automatically validates the data 
 ## Extending
 
 - Add new field types by implementing `FieldTypeInterface`.
-- Implement your own repositories for persistent storage.
-- Add more content statuses by extending the `ContentStatus` enum.
+- Implement your own repositories for persistent storage by extending `ContentRepositoryInterface` and `ContentVersionRepositoryInterface`.
+- Create custom validation rules by implementing `FieldValidationRuleInterface`.
+
+## Contributing
+Contributions are welcome! Please create a pull request or open an issue for discussion.
 
 ## License
-
 LGPL-3.0-or-later
