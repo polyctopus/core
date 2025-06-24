@@ -29,7 +29,7 @@ beforeEach(function () {
 it('can create content via ContentService', function () {
     $contentType = new ContentType('ct1', 'ctype_1', 'Label');
     $this->contentTypeRepo->save($contentType); 
-    $content = $this->service->create('ct1', $contentType, ['title' => 'Test']);
+    $content = $this->service->createContent('ct1', $contentType, ['title' => 'Test']);
 
     expect($content)->toBeInstanceOf(Content::class)
         ->and($content->getId())->toBe('ct1')
@@ -41,7 +41,7 @@ it('can create content via ContentService', function () {
 it('can update content via ContentService', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
     $this->contentTypeRepo->save($contentType); 
-    $content = $this->service->create('c2', $contentType, ['title' => 'Old']);
+    $content = $this->service->createContent('c2', $contentType, ['title' => 'Old']);
     $this->service->update($content, ContentStatus::Published, ['title' => 'New']);
 
     $updated = $this->repo->find('c2');
@@ -52,7 +52,7 @@ it('can update content via ContentService', function () {
 it('can find content via ContentService', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
     $this->contentTypeRepo->save($contentType); 
-    $this->service->create('c3', $contentType, ['foo' => 'bar']);
+    $this->service->createContent('c3', $contentType, ['foo' => 'bar']);
     $found = $this->service->find('c3');
 
     expect($found)->toBeInstanceOf(Content::class)
@@ -62,7 +62,7 @@ it('can find content via ContentService', function () {
 it('can delete content via ContentService', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
     $this->contentTypeRepo->save($contentType); 
-    $this->service->create('c4', $contentType, ['x' => 1]);
+    $this->service->createContent('c4', $contentType, ['x' => 1]);
 
     expect($this->repo->find('c4'))->not->toBeNull();
 
@@ -101,7 +101,7 @@ it('throws exception if content data does not match field validation on create',
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
     $this->contentTypeRepo->save($contentType); 
 
-    expect(fn() => $this->service->create('c5', $contentType, ['title' => 'Too long for field']))
+    expect(fn() => $this->service->createContent('c5', $contentType, ['title' => 'Too long for field']))
         ->toThrow(ValidationException::class);
 });
 
@@ -117,7 +117,7 @@ it('throws exception if content data does not match field validation on update',
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
     $this->contentTypeRepo->save($contentType); 
 
-    $content = $this->service->create('c6', $contentType, ['title' => 'Short']);
+    $content = $this->service->createContent('c6', $contentType, ['title' => 'Short']);
     expect(fn() => $this->service->update($content, ContentStatus::Draft, ['title' => 'Too long for field']))
         ->toThrow(ValidationException::class);
 });
@@ -133,7 +133,7 @@ it('creates a version entry when updating content', function () {
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
     $this->contentTypeRepo->save($contentType); 
-    $content = $this->service->create('c7', $contentType, ['title' => 'Original']);
+    $content = $this->service->createContent('c7', $contentType, ['title' => 'Original']);
 
     $this->service->update($content, ContentStatus::Published, ['title' => 'Changed']);
 
@@ -156,7 +156,7 @@ it('can rollback content to a previous version', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
     $this->contentTypeRepo->save($contentType);
 
-    $content = $this->service->create('ct1', $contentType, ['title' => 'First']);
+    $content = $this->service->createContent('ct1', $contentType, ['title' => 'First']);
     $this->service->update($content, ContentStatus::Published, ['title' => 'Second']);
     $this->service->update($content, ContentStatus::Published, ['title' => 'Third']);
 
@@ -181,7 +181,7 @@ it('can resolve content with variant overrides', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
     $this->contentTypeRepo->save($contentType);
 
-    $this->service->create('c9', $contentType, ['title' => 'Original Title']);
+    $this->service->createContent('c9', $contentType, ['title' => 'Original Title']);
     
     $variant = new ContentVariant(
         id: 'v1',

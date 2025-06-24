@@ -33,16 +33,16 @@ $service = new ContentService(
 
 // Create a new Content (invalid)
 try {
-    $content = $service->create('c1', $contentType, ['title' => str_repeat('A', 300)]);
+    $content = $service->createContent('c1', $contentType, ['title' => str_repeat('A', 300)]);
 
-} catch (\Polyctopus\Core\Models\ValidationException $e) {
+} catch (\Polyctopus\Core\Exceptions\ValidationException $e) {
     foreach ($e->getErrors() as $error) {
         echo "Field: {$error->field}, Value: " . var_export($error->value, true) . ", Message: {$error->message}\n";
     }
 }
 
 // Create a new Content (valid one)
-$content = $service->create('c1', $contentType, ['title' => str_repeat('A', 5)]);
+$content = $service->createContent('c1', $contentType, ['title' => str_repeat('A', 5)]);
 
 echo "Created content: " . print_r($content->toArray(), true) . PHP_EOL;
 
