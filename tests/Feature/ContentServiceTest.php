@@ -28,32 +28,32 @@ beforeEach(function () {
 
 it('can create content via ContentService', function () {
     $contentType = new ContentType('ct1', 'ctype_1', 'Label');
-    $this->contentTypeRepo->save($contentType); 
+    $this->service->createContentType($contentType); 
     $content = $this->service->createContent('ct1', $contentType, ['title' => 'Test']);
 
     expect($content)->toBeInstanceOf(Content::class)
         ->and($content->getId())->toBe('ct1')
         ->and($content->getContentType()->getId())->toBe('ct1')
         ->and($content->getData())->toMatchArray(['title' => 'Test'])
-        ->and($this->repo->find('ct1'))->not->toBeNull();
+        ->and($this->service->findContent('ct1'))->not->toBeNull();
 });
 
 it('can update content via ContentService', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
-    $this->contentTypeRepo->save($contentType); 
+    $this->service->createContentType($contentType); 
     $content = $this->service->createContent('c2', $contentType, ['title' => 'Old']);
-    $this->service->update($content, ContentStatus::Published, ['title' => 'New']);
+    $this->service->updateContent($content, ContentStatus::Published, ['title' => 'New']);
 
-    $updated = $this->repo->find('c2');
+    $updated = $this->service->findContent('c2');
     expect($updated)->toBeInstanceOf(Content::class)
         ->and($updated->getData())->toMatchArray(['title' => 'New']);
 });
 
 it('can find content via ContentService', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
-    $this->contentTypeRepo->save($contentType); 
+    $this->service->createContentType($contentType); 
     $this->service->createContent('c3', $contentType, ['foo' => 'bar']);
-    $found = $this->service->find('c3');
+    $found = $this->service->findContent('c3');
 
     expect($found)->toBeInstanceOf(Content::class)
         ->and($found->getId())->toBe('c3');
@@ -61,21 +61,21 @@ it('can find content via ContentService', function () {
 
 it('can delete content via ContentService', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
-    $this->contentTypeRepo->save($contentType); 
+    $this->service->createContentType($contentType); 
     $this->service->createContent('c4', $contentType, ['x' => 1]);
 
-    expect($this->repo->find('c4'))->not->toBeNull();
+    expect($this->service->findContent('c4'))->not->toBeNull();
 
-    $this->service->delete('c4');
-    expect($this->repo->find('c4'))->toBeNull();
+    $this->service->deleteContent('c4');
+    expect($this->service->findContent('c4'))->toBeNull();
 });
 
 it('can list all content types via ContentService', function () {
 
     $type1 = new ContentType('ct1', 'Type 1', 'Label 1');
     $type2 = new ContentType('ct2', 'Type 2', 'Label 2');
-    $this->contentTypeRepo->save($type1);
-    $this->contentTypeRepo->save($type2);
+    $this->service->createContentType($type1);
+    $this->service->createContentType($type2);
 
     $types = $this->service->listContentTypes();
 
@@ -118,7 +118,7 @@ it('throws exception if content data does not match field validation on update',
     $this->contentTypeRepo->save($contentType); 
 
     $content = $this->service->createContent('c6', $contentType, ['title' => 'Short']);
-    expect(fn() => $this->service->update($content, ContentStatus::Draft, ['title' => 'Too long for field']))
+    expect(fn() => $this->service->updateContent($content, ContentStatus::Draft, ['title' => 'Too long for field']))
         ->toThrow(ValidationException::class);
 });
 
@@ -135,7 +135,7 @@ it('creates a version entry when updating content', function () {
     $this->contentTypeRepo->save($contentType); 
     $content = $this->service->createContent('c7', $contentType, ['title' => 'Original']);
 
-    $this->service->update($content, ContentStatus::Published, ['title' => 'Changed']);
+    $this->service->updateContent($content, ContentStatus::Published, ['title' => 'Changed']);
 
     $versions = $this->contentVersionRepo->all();
     expect($versions)->toBeArray()
@@ -157,15 +157,15 @@ it('can rollback content to a previous version', function () {
     $this->contentTypeRepo->save($contentType);
 
     $content = $this->service->createContent('ct1', $contentType, ['title' => 'First']);
-    $this->service->update($content, ContentStatus::Published, ['title' => 'Second']);
-    $this->service->update($content, ContentStatus::Published, ['title' => 'Third']);
+    $this->service->updateContent($content, ContentStatus::Published, ['title' => 'Second']);
+    $this->service->updateContent($content, ContentStatus::Published, ['title' => 'Third']);
 
     // Simulate rollback: get first version and restore its snapshot
     $versions = $this->contentVersionRepo->all();
     $firstVersion = $versions[array_key_first($versions)];
-    $this->service->update($content, ContentStatus::Published, $firstVersion->getSnapshot());
+    $this->service->updateContent($content, ContentStatus::Published, $firstVersion->getSnapshot());
 
-    $rolledBack = $this->repo->find('ct1');
+    $rolledBack = $this->service->findContent('ct1');
     expect($rolledBack->getData())->toMatchArray(['title' => 'First']);
 });
 

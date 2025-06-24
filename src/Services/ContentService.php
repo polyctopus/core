@@ -13,7 +13,6 @@ use Polyctopus\Core\Repositories\ContentVariantRepositoryInterface;
 use Polyctopus\Core\Repositories\ContentVersionRepositoryInterface;
 use DateTimeImmutable;
 
-
 class ContentService
 {
     public function __construct(
@@ -55,7 +54,7 @@ class ContentService
         return $content;
     }
 
-    public function update(Content $content, ContentStatus $contentStatus, array $newData): void
+    public function updateContent(Content $content, ContentStatus $contentStatus, array $newData): void
     {
         $this->validateContentData($content->getContentType(), $newData);
 
@@ -76,12 +75,12 @@ class ContentService
         $this->repository->save($content);
     }
 
-    public function find(string $id): ?Content
+    public function findContent(string $id): ?Content
     {
         return $this->repository->find($id);
     }
 
-    public function delete(string $id): void
+    public function deleteContent(string $id): void
     {
         $this->repository->delete($id);
     }

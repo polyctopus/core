@@ -47,14 +47,14 @@ $content = $service->createContent('c1', $contentType, ['title' => str_repeat('A
 echo "Created content: " . print_r($content->toArray(), true) . PHP_EOL;
 
 // Update Content (valid and status change)
-$service->update($content, ContentStatus::Published, ['title' => 'Updated Title']);
-$updated = $service->find('c1');
+$service->updateContent($content, ContentStatus::Published, ['title' => 'Updated Title']);
+$updated = $service->findContent('c1');
 echo "Updated content: " . print_r($updated->toArray(), true) . PHP_EOL;
 
 // Weitere Updates für Versionierung
-$service->update($content, ContentStatus::Published, ['title' => 'Second Version']);
-$service->update($content, ContentStatus::Published, ['title' => 'Third Version']);
-echo "Content after more updates: " . print_r($service->find('c1')->toArray(), true) . PHP_EOL;
+$service->updateContent($content, ContentStatus::Published, ['title' => 'Second Version']);
+$service->updateContent($content, ContentStatus::Published, ['title' => 'Third Version']);
+echo "Content after more updates: " . print_r($service->findContent('c1')->toArray(), true) . PHP_EOL;
 
 // Zeige alle Versionen
 $versions = $contentVersionRepo->findByEntity('content', 'c1');
@@ -68,7 +68,7 @@ echo "Rolling back to the first version..." . PHP_EOL;
 $firstVersion = reset($versions);
 if ($firstVersion) {
     $service->rollback('c1', $firstVersion->getId());
-    $rolledBack = $service->find('c1');
+    $rolledBack = $service->findContent('c1');
     echo "Content after rollback: " . print_r($rolledBack->toArray(), true) . PHP_EOL;
 }
 
@@ -103,9 +103,9 @@ foreach ($contentTypes as $ct) {
 }
 
 // Delete Content
-$service->delete('c1');
+$service->deleteContent('c1');
 echo "Content after delete: ";
-var_dump($service->find('c1'));
+var_dump($service->findContent('c1'));
 
 echo  PHP_EOL ."Memory usage of this script: ";
 echo round(memory_get_usage()/1024/1024,2) . " MBytes \n" . PHP_EOL;
