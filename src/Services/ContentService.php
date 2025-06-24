@@ -5,6 +5,7 @@ namespace Polyctopus\Core\Services;
 use Polyctopus\Core\Exceptions\ValidationException;
 use Polyctopus\Core\Models\Content;
 use Polyctopus\Core\Models\ContentStatus;
+use Polyctopus\Core\Models\ContentVariant;
 use Polyctopus\Core\Models\ContentVersion;
 use Polyctopus\Core\Models\ContentType;
 use Polyctopus\Core\Repositories\ContentRepositoryInterface;
@@ -150,16 +151,12 @@ class ContentService
 
      public function createContentType(ContentType $contentType): void
     {
-        // Optional: Validierung, z.B. auf eindeutigen Code/ID
         if ($this->contentTypeRepository->find($contentType->getId())) {
             throw new \InvalidArgumentException("ContentType '{$contentType->getId()}' already exists.");
         }
         $this->contentTypeRepository->save($contentType);
     }
 
-    /**
-     * Update an existing ContentType.
-     */
     public function updateContentType(ContentType $contentType): void
     {
         if (! $this->contentTypeRepository->find($contentType->getId())) {
@@ -168,9 +165,6 @@ class ContentService
         $this->contentTypeRepository->save($contentType);
     }
 
-    /**
-     * Delete a ContentType by ID.
-     */
     public function deleteContentType(string $contentTypeId): void
     {
         if (! $this->contentTypeRepository->find($contentTypeId)) {
@@ -179,12 +173,39 @@ class ContentService
         $this->contentTypeRepository->delete($contentTypeId);
     }
 
-    /**
-     * Find a ContentType by ID.
-     */
     public function findContentType(string $contentTypeId): ?ContentType
     {
         return $this->contentTypeRepository->find($contentTypeId);
+    }
+
+    public function findContentVariant(string $contentId, string $dimension): ?ContentVariant
+    {
+        return $this->contentVariantRepository->findByContentAndDimension($contentId, $dimension);
+    }
+
+    public function createContentVariant(ContentVariant $variant): void
+    {
+        $this->contentVariantRepository->save($variant);
+    }
+
+    public function deleteContentVariant(string $variantId): void
+    {
+        $this->contentVariantRepository->delete($variantId);
+    }
+
+    public function findContentVersionsByEntityType(string $entityType, string $entityId): array
+    {
+        return $this->contentVersionRepository->findByEntity($entityType, $entityId);
+    }
+
+    public function saveContentVersion(ContentVersion $version): void
+    {
+        $this->contentVersionRepository->save($version);
+    }
+
+    public function listAllContentVersions(): array
+    {
+        return $this->contentVersionRepository->all();
     }
 
 }

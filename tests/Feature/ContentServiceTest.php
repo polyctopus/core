@@ -189,7 +189,7 @@ it('can resolve content with variant overrides', function () {
         dimension: 'brand_a',
         overrides: ['title' => 'Brand A Title']
     );
-    $this->contentVariantRepo->save($variant);
+    $this->service->createContentVariant($variant);
 
     $resolved = $this->service->resolveContentWithVariant('c9', 'brand_a');
     expect($resolved)->toBe(['title' => 'Brand A Title']);

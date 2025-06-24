@@ -4,32 +4,16 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use Polyctopus\Core\Models\ContentStatus;
 use Polyctopus\Core\Models\ContentVariant;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentRepository;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentVariantRepository;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentVersionRepository;
-use Polyctopus\Core\Services\ContentService;
 use Polyctopus\Core\Services\TestFactory;
+use Polyctopus\Core\Services\ContentServiceFactory;
 
-// Setup repositories
-$contentRepo = new InMemoryContentRepository();
-$contentTypeRepo = new InMemoryContentTypeRepository();
-$contentVariantRepo = new InMemoryContentVariantRepository();
-$contentVersionRepo = new InMemoryContentVersionRepository();
+// Create ContentService
+$service = ContentServiceFactory::create();
 
 // Create a ContentType (e.g. "Article" with a "title" field using the TestFactory)
 $contentType = TestFactory::contentTypeWithTextField('article');
 
-// Save ContentType
-$contentTypeRepo->save($contentType);
-
-// Create ContentService
-$service = new ContentService(
-    $contentRepo, 
-    $contentTypeRepo,
-    $contentVersionRepo,
-    $contentVariantRepo
-);
+$service->createContentType($contentType);
 
 // Create a new Content (invalid)
 try {
@@ -57,7 +41,7 @@ $service->updateContent($content, ContentStatus::Published, ['title' => 'Third V
 echo "Content after more updates: " . print_r($service->findContent('c1')->toArray(), true) . PHP_EOL;
 
 // Zeige alle Versionen
-$versions = $contentVersionRepo->findByEntity('content', 'c1');
+$versions = $service->findContentVersionsByEntityType('content', 'c1');
 echo "Available versions for content c1:" . PHP_EOL;
 foreach ($versions as $version) {
     echo "- Version ID: {$version->getId()}, Snapshot: " . json_encode($version->toArray()['snapshot']) . PHP_EOL;
@@ -82,7 +66,7 @@ $variant = new ContentVariant(
     dimension: 'brand_a',
     overrides: ['title' => 'Brand A Title']
 );
-$contentVariantRepo->save($variant);
+$service->createContentVariant($variant);
 
 // resolve content with variant overrides
 $resolvedBrandA = $service->resolveContentWithVariant('c1', 'brand_a');
