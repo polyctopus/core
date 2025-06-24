@@ -9,7 +9,7 @@ use Polyctopus\Core\Models\ContentStatus;
 use Polyctopus\Core\Models\ContentType;
 use Polyctopus\Core\Models\ContentField;
 use Polyctopus\Core\Models\FieldTypes\TextFieldType;
-
+use Polyctopus\Core\Models\ValidationException;
 
 it('can create content via ContentService', function () {
     $repo = new InMemoryContentRepository();
@@ -108,7 +108,7 @@ it('throws exception if content data does not match field validation on create',
     $service = new ContentService($repo, $contentTypeRepo, $contentVersionRepo);
 
     expect(fn() => $service->create('c5', $contentType, ['title' => 'Too long for field']))
-        ->toThrow(InvalidArgumentException::class);
+        ->toThrow(ValidationException::class);
 });
 
 it('throws exception if content data does not match field validation on update', function () {
@@ -129,7 +129,7 @@ it('throws exception if content data does not match field validation on update',
 
     $content = $service->create('c6', $contentType, ['title' => 'Short']);
     expect(fn() => $service->update($content, ContentStatus::Draft, ['title' => 'Too long for field']))
-        ->toThrow(InvalidArgumentException::class);
+        ->toThrow(ValidationException::class);
 });
 
 it('creates a version entry when updating content', function () {

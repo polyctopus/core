@@ -10,7 +10,6 @@ use Polyctopus\Core\Repositories\ContentRepositoryInterface;
 use Polyctopus\Core\Repositories\ContentTypeRepositoryInterface;
 use Polyctopus\Core\Repositories\ContentVersionRepositoryInterface;
 use DateTimeImmutable;
-use InvalidArgumentException;
 
 class ContentService
 {

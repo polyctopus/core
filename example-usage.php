@@ -2,34 +2,23 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Polyctopus\Core\Models\ContentType;
-use Polyctopus\Core\Models\ContentField;
 use Polyctopus\Core\Models\ContentStatus;
-use Polyctopus\Core\Models\FieldTypes\TextFieldType;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentRepository;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentVersionRepository;
 use Polyctopus\Core\Services\ContentService;
+use Polyctopus\Core\Services\TestFactory;
 
 // Setup repositories
 $contentRepo = new InMemoryContentRepository();
 $contentTypeRepo = new InMemoryContentTypeRepository();
 $contentVersionRepo = new InMemoryContentVersionRepository();
 
-// Create a ContentType (e.g. "Article" with a "title" field)
-$articleType = new ContentType(id: 'article', code: 'article', label: 'Article');
-
-$articleType->addField(new ContentField(
-    id: 'f1',
-    contentTypeId: 'article',
-    code: 'title',
-    label: 'Title',
-    fieldType: new TextFieldType(),
-    settings: ['maxLength' => 255]
-));
+// Create a ContentType (e.g. "Article" with a "title" field using the TestFactory)
+$contentType = TestFactory::contentTypeWithTextField('article');
 
 // Save ContentType
-$contentTypeRepo->save($articleType);
+$contentTypeRepo->save($contentType);
 
 // Create ContentService
 $service = new ContentService($contentRepo, $contentTypeRepo, $contentVersionRepo);
