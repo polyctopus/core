@@ -112,11 +112,19 @@ class ContentService
 
     private function validateContentData(ContentType $contentType, array $data): void
     {
+        $errors = [];
         foreach ($contentType->getFields() as $field) {
             $code = $field->code;
             if (array_key_exists($code, $data) && !$field->validate($data[$code])) {
-                throw new InvalidArgumentException("Validation failed for field '{$code}' with value: " . var_export($data[$code], true));
+                $errors[] = new \Polyctopus\Core\Models\ValidationError(
+                    field: $code,
+                    value: $data[$code],
+                    message: "Validation failed for field '{$code}' with value: " . var_export($data[$code], true)
+                );
             }
+        }
+        if ($errors) {
+            throw new \Polyctopus\Core\Models\ValidationException($errors);
         }
     }
 }

@@ -34,8 +34,19 @@ $contentTypeRepo->save($articleType);
 // Create ContentService
 $service = new ContentService($contentRepo, $contentTypeRepo, $contentVersionRepo);
 
-// Create a new Content (valid)
-$content = $service->create('c1', $articleType, ['title' => 'Hello World!']);
+// Create a new Content (invalid)
+try {
+    $content = $service->create('c1', $articleType, ['title' => str_repeat('A', 300)]);
+
+} catch (\Polyctopus\Core\Models\ValidationException $e) {
+    foreach ($e->getErrors() as $error) {
+        echo "Field: {$error->field}, Value: " . var_export($error->value, true) . ", Message: {$error->message}\n";
+    }
+}
+
+// Create a new Content (valid one)
+$content = $service->create('c1', $articleType, ['title' => str_repeat('A', 5)]);
+
 echo "Created content: " . print_r($content->toArray(), true) . PHP_EOL;
 
 // Update Content (valid and status change)
@@ -63,13 +74,6 @@ if ($firstVersion) {
     echo "Content after rollback: " . print_r($rolledBack->toArray(), true) . PHP_EOL;
 }
 
-// Try to update with invalid data (should throw exception)
-try {
-    $service->update($content, ContentStatus::Published, ['title' => str_repeat('A', 300)]);
-} catch (\InvalidArgumentException $e) {
-    echo "Validation failed as expected: " . $e->getMessage() . PHP_EOL;
-}
-
 // List all ContentTypes
 $contentTypes = $service->listContentTypes();
 echo "Available content types:" . PHP_EOL;
@@ -81,7 +85,6 @@ foreach ($contentTypes as $ct) {
 $service->delete('c1');
 echo "Content after delete: ";
 var_dump($service->find('c1'));
-
 
 echo  PHP_EOL ."Memory usage of this script: ";
 echo round(memory_get_usage()/1024/1024,2) . " MBytes \n" . PHP_EOL;
