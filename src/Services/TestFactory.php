@@ -10,11 +10,20 @@ use Polyctopus\Core\Models\FieldTypes\TextFieldType;
 
 class TestFactory
 {
+    public static function contentType(string $code = 'article'): ContentType
+    {
+        return new ContentType(
+            id: $code,
+            code: strtolower($code),
+            label: ucfirst($code)
+        );
+    }
+
     public static function contentTypeWithTextField(string $code = 'article'): ContentType
     {
         return new ContentType(
             id: $code,
-            code: $code,
+            code: strtolower($code),
             label: ucfirst($code),
             fields: [
                 new ContentField(
@@ -22,6 +31,14 @@ class TestFactory
                     contentTypeId: $code,
                     code: 'title',
                     label: 'Title',
+                    fieldType: new TextFieldType(),
+                    settings: ['maxLength' => 255]
+                ),
+                 new ContentField(
+                    id: 'f1',
+                    contentTypeId: $code,
+                    code: 'contact',
+                    label: 'Contact',
                     fieldType: new TextFieldType(),
                     settings: ['maxLength' => 255]
                 )

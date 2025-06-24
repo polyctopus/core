@@ -24,6 +24,11 @@ class ContentService
 
     public function create(string $id, ContentType $contentType, array $data): Content
     {
+        $existingType = $this->contentTypeRepository->find($contentType->getId());
+        if (!$existingType) {
+            throw new \InvalidArgumentException("ContentType '{$contentType->getId()}' does not exist.");
+        }
+
         $this->validateContentData($contentType, $data);
 
         $content = new Content(
@@ -37,13 +42,12 @@ class ContentService
 
         $this->repository->save($content);
 
-        // NEU: Erste Version anlegen
         $version = new ContentVersion(
             id: uniqid('ver_', true),
             entityType: 'content',
             entityId: $content->getId(),
             snapshot: $content->getData(),
-            diff: null // keine Änderung, da initial
+            diff: null
         );
         $this->contentVersionRepository->save($version);
 
@@ -52,7 +56,6 @@ class ContentService
 
     public function update(Content $content, ContentStatus $contentStatus, array $newData): void
     {
-
         $this->validateContentData($content->getContentType(), $newData);
 
         $oldSnapshot = $content->getData();
@@ -67,6 +70,7 @@ class ContentService
         
         $this->contentVersionRepository->save($version);
 
+        $content->setStatus($contentStatus);
         $content->setData($newData);
         $this->repository->save($content);
     }
