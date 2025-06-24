@@ -1,6 +1,6 @@
 <?php
 
-namespace Polyctopus\Core\Models;
+namespace Polyctopus\Core\Exceptions;
 
 use Exception;
 

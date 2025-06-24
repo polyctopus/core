@@ -2,6 +2,7 @@
 
 namespace Polyctopus\Core\Services;
 
+use Polyctopus\Core\Exceptions\ValidationException;
 use Polyctopus\Core\Models\Content;
 use Polyctopus\Core\Models\ContentStatus;
 use Polyctopus\Core\Models\ContentVersion;
@@ -144,7 +145,7 @@ class ContentService
             }
         }
         if ($errors) {
-            throw new \Polyctopus\Core\Models\ValidationException($errors);
+            throw new ValidationException($errors);
         }
     }
 }

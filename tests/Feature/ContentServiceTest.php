@@ -10,7 +10,7 @@ use Polyctopus\Core\Models\ContentVariant;
 use Polyctopus\Core\Models\ContentType;
 use Polyctopus\Core\Models\ContentField;
 use Polyctopus\Core\Models\FieldTypes\TextFieldType;
-use Polyctopus\Core\Models\ValidationException;
+use Polyctopus\Core\Exceptions\ValidationException;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentVariantRepository;
 
 beforeEach(function () {
@@ -27,19 +27,20 @@ beforeEach(function () {
 });
 
 it('can create content via ContentService', function () {
-
-    $contentType = new ContentType('ct1', 'Type 1', 'Label');
-    $content = $this->service->create('c1', $contentType, ['title' => 'Test']);
+    $contentType = new ContentType('ct1', 'ctype_1', 'Label');
+    $this->contentTypeRepo->save($contentType); 
+    $content = $this->service->create('ct1', $contentType, ['title' => 'Test']);
 
     expect($content)->toBeInstanceOf(Content::class)
-        ->and($content->getId())->toBe('c1')
+        ->and($content->getId())->toBe('ct1')
         ->and($content->getContentType()->getId())->toBe('ct1')
         ->and($content->getData())->toMatchArray(['title' => 'Test'])
-        ->and($this->repo->find('c1'))->not->toBeNull();
+        ->and($this->repo->find('ct1'))->not->toBeNull();
 });
 
 it('can update content via ContentService', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
+    $this->contentTypeRepo->save($contentType); 
     $content = $this->service->create('c2', $contentType, ['title' => 'Old']);
     $this->service->update($content, ContentStatus::Published, ['title' => 'New']);
 
@@ -50,6 +51,7 @@ it('can update content via ContentService', function () {
 
 it('can find content via ContentService', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
+    $this->contentTypeRepo->save($contentType); 
     $this->service->create('c3', $contentType, ['foo' => 'bar']);
     $found = $this->service->find('c3');
 
@@ -59,6 +61,7 @@ it('can find content via ContentService', function () {
 
 it('can delete content via ContentService', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
+    $this->contentTypeRepo->save($contentType); 
     $this->service->create('c4', $contentType, ['x' => 1]);
 
     expect($this->repo->find('c4'))->not->toBeNull();
@@ -87,11 +90,6 @@ it('can list all content types via ContentService', function () {
 });
 
 it('throws exception if content data does not match field validation on create', function () {
-    $repo = new InMemoryContentRepository();
-    $contentTypeRepo = new InMemoryContentTypeRepository();
-    $contentVersionRepo = new InMemoryContentVersionRepository();
-    $contentVariantRepo = new InMemoryContentVariantRepository();
-
     $field = new ContentField(
         id: 'f1',
         contentTypeId: 'ct1',
@@ -101,18 +99,13 @@ it('throws exception if content data does not match field validation on create',
         settings: ['maxLength' => 5]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $service = new ContentService($repo, $contentTypeRepo, $contentVersionRepo, $contentVariantRepo);
+    $this->contentTypeRepo->save($contentType); 
 
-    expect(fn() => $service->create('c5', $contentType, ['title' => 'Too long for field']))
+    expect(fn() => $this->service->create('c5', $contentType, ['title' => 'Too long for field']))
         ->toThrow(ValidationException::class);
 });
 
 it('throws exception if content data does not match field validation on update', function () {
-    $repo = new InMemoryContentRepository();
-    $contentTypeRepo = new InMemoryContentTypeRepository();
-    $contentVersionRepo = new InMemoryContentVersionRepository();
-    $contentVariantRepo = new InMemoryContentVariantRepository();
-
     $field = new ContentField(
         id: 'f1',
         contentTypeId: 'ct1',
@@ -122,19 +115,14 @@ it('throws exception if content data does not match field validation on update',
         settings: ['maxLength' => 5]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $service = new ContentService($repo, $contentTypeRepo, $contentVersionRepo, $contentVariantRepo);
+    $this->contentTypeRepo->save($contentType); 
 
-    $content = $service->create('c6', $contentType, ['title' => 'Short']);
-    expect(fn() => $service->update($content, ContentStatus::Draft, ['title' => 'Too long for field']))
+    $content = $this->service->create('c6', $contentType, ['title' => 'Short']);
+    expect(fn() => $this->service->update($content, ContentStatus::Draft, ['title' => 'Too long for field']))
         ->toThrow(ValidationException::class);
 });
 
 it('creates a version entry when updating content', function () {
-    $repo = new InMemoryContentRepository();
-    $contentTypeRepo = new InMemoryContentTypeRepository();
-    $contentVersionRepo = new InMemoryContentVersionRepository();
-    $contentVariantRepo = new InMemoryContentVariantRepository();
-
     $field = new ContentField(
         id: 'f1',
         contentTypeId: 'ct1',
@@ -144,12 +132,12 @@ it('creates a version entry when updating content', function () {
         settings: ['maxLength' => 255]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $service = new ContentService($repo, $contentTypeRepo, $contentVersionRepo, $contentVariantRepo);
-    $content = $service->create('c7', $contentType, ['title' => 'Original']);
+    $this->contentTypeRepo->save($contentType); 
+    $content = $this->service->create('c7', $contentType, ['title' => 'Original']);
 
-    $service->update($content, ContentStatus::Published, ['title' => 'Changed']);
+    $this->service->update($content, ContentStatus::Published, ['title' => 'Changed']);
 
-    $versions = $contentVersionRepo->all();
+    $versions = $this->contentVersionRepo->all();
     expect($versions)->toBeArray()
         ->and(count($versions))->toBeGreaterThan(0)
         ->and($versions[array_key_first($versions)])->getSnapshot()->toMatchArray(['title' => 'Original'])
@@ -157,11 +145,6 @@ it('creates a version entry when updating content', function () {
 });
 
 it('can rollback content to a previous version', function () {
-    $repo = new InMemoryContentRepository();
-    $contentTypeRepo = new InMemoryContentTypeRepository();
-    $contentVersionRepo = new InMemoryContentVersionRepository();
-    $contentVariantRepo = new InMemoryContentVariantRepository();
-
     $field = new ContentField(
         id: 'f1',
         contentTypeId: 'ct1',
@@ -171,18 +154,18 @@ it('can rollback content to a previous version', function () {
         settings: ['maxLength' => 255]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $service = new ContentService($repo, $contentTypeRepo, $contentVersionRepo, $contentVariantRepo);
+    $this->contentTypeRepo->save($contentType);
 
-    $content = $service->create('c8', $contentType, ['title' => 'First']);
-    $service->update($content, ContentStatus::Published, ['title' => 'Second']);
-    $service->update($content, ContentStatus::Published, ['title' => 'Third']);
+    $content = $this->service->create('ct1', $contentType, ['title' => 'First']);
+    $this->service->update($content, ContentStatus::Published, ['title' => 'Second']);
+    $this->service->update($content, ContentStatus::Published, ['title' => 'Third']);
 
     // Simulate rollback: get first version and restore its snapshot
-    $versions = $contentVersionRepo->all();
+    $versions = $this->contentVersionRepo->all();
     $firstVersion = $versions[array_key_first($versions)];
-    $service->update($content, ContentStatus::Published, $firstVersion->getSnapshot());
+    $this->service->update($content, ContentStatus::Published, $firstVersion->getSnapshot());
 
-    $rolledBack = $repo->find('c8');
+    $rolledBack = $this->repo->find('ct1');
     expect($rolledBack->getData())->toMatchArray(['title' => 'First']);
 });
 
