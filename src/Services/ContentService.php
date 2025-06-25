@@ -2,18 +2,23 @@
 
 namespace Polyctopus\Core\Services;
 
-use Polyctopus\Core\Exceptions\ValidationException;
-use Polyctopus\Core\Events\ContentCreated;
-use Polyctopus\Core\Events\EventInterface;
-use Polyctopus\Core\Models\Content;
-use Polyctopus\Core\Models\ContentStatus;
-use Polyctopus\Core\Models\ContentVariant;
-use Polyctopus\Core\Models\ContentVersion;
-use Polyctopus\Core\Models\ContentType;
-use Polyctopus\Core\Repositories\ContentRepositoryInterface;
-use Polyctopus\Core\Repositories\ContentTypeRepositoryInterface;
-use Polyctopus\Core\Repositories\ContentVariantRepositoryInterface;
-use Polyctopus\Core\Repositories\ContentVersionRepositoryInterface;
+use Polyctopus\Core\{
+    Events\ContentCreated,
+    Events\ContentDeleted,
+    Events\ContentUpdated,
+    Events\ContentRolledBack,
+    Events\EventInterface,
+    Exceptions\ValidationException,
+    Models\Content,
+    Models\ContentStatus,
+    Models\ContentVariant,
+    Models\ContentVersion,
+    Models\ContentType,
+    Repositories\ContentRepositoryInterface,
+    Repositories\ContentTypeRepositoryInterface,
+    Repositories\ContentVariantRepositoryInterface,
+    Repositories\ContentVersionRepositoryInterface   
+};
 use DateTimeImmutable;
 
 
@@ -22,7 +27,7 @@ class ContentService
    private $eventDispatcher = null;
 
     public function __construct(
-        private readonly ContentRepositoryInterface $repository,
+        private readonly ContentRepositoryInterface $contentRepository,
         private readonly ContentTypeRepositoryInterface $contentTypeRepository,
         private readonly ContentVersionRepositoryInterface $contentVersionRepository,
         private readonly ContentVariantRepositoryInterface $contentVariantRepository,
@@ -49,7 +54,7 @@ class ContentService
             new DateTimeImmutable(),
         );
 
-        $this->repository->save($content);
+        $this->contentRepository->save($content);
         $this->dispatch(new ContentCreated($content));
 
         $version = new ContentVersion(
@@ -82,17 +87,19 @@ class ContentService
 
         $content->setStatus($contentStatus);
         $content->setData($newData);
-        $this->repository->save($content);
+        $this->contentRepository->save($content);
+        $this->dispatch(new ContentUpdated($content));
     }
 
     public function findContent(string $id): ?Content
     {
-        return $this->repository->find($id);
+        return $this->contentRepository->find($id);
     }
 
     public function deleteContent(string $id): void
     {
-        $this->repository->delete($id);
+        $this->contentRepository->delete($id);
+        $this->dispatch(new ContentDeleted($id));
     }
 
     public function listContentTypes(): array
@@ -103,6 +110,7 @@ class ContentService
     public function rollback(string $entityId, string $versionId): void
     {
         $versions = $this->contentVersionRepository->findByEntity('content', $entityId);
+        /** @var ContentVersion $version */
         $version = null;
         foreach ($versions as $v) {
             if (method_exists($v, 'getId') && $v->getId() === $versionId) {
@@ -116,18 +124,19 @@ class ContentService
         if (! $version) {
             throw new \RuntimeException("Version not found");
         }
-        $content = $this->repository->find($entityId);
+        $content = $this->contentRepository->find($entityId);
         if (! $content) {
             throw new \RuntimeException("Content not found");
         }
         // Snapshot wiederherstellen
         $content->setData($version->toArray()['snapshot']);
-        $this->repository->save($content);
+        $this->contentRepository->save($content);
+        $this->dispatch(new ContentRolledBack($content, $version));
     }
 
     public function resolveContentWithVariant(string $contentId, string $dimension): ?array
     {
-        $content = $this->repository->find($contentId);
+        $content = $this->contentRepository->find($contentId);
         if (!$content) {
             return null;
         }
