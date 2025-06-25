@@ -3,6 +3,7 @@
 namespace Polyctopus\Core\Services;
 
 use Polyctopus\Core\Services\ContentService;
+use Polyctopus\Core\Events\EventInterface;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentRepository;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentVariantRepository;
@@ -21,7 +22,11 @@ class InMemoryContentServiceFactory
             new InMemoryContentRepository(), 
             new InMemoryContentTypeRepository(),
             new InMemoryContentVersionRepository(),
-            new InMemoryContentVariantRepository()
+            new InMemoryContentVariantRepository(),
+             function(EventInterface $event) {
+                echo $event->getName() . " event dispatched at " . $event->getTimestamp()->format('Y-m-d H:i:s') . "\n";
+            
+            }
         );
     }
 }

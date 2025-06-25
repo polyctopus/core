@@ -3,6 +3,8 @@
 namespace Polyctopus\Core\Services;
 
 use Polyctopus\Core\Exceptions\ValidationException;
+use Polyctopus\Core\Events\ContentCreated;
+use Polyctopus\Core\Events\EventInterface;
 use Polyctopus\Core\Models\Content;
 use Polyctopus\Core\Models\ContentStatus;
 use Polyctopus\Core\Models\ContentVariant;
@@ -14,14 +16,20 @@ use Polyctopus\Core\Repositories\ContentVariantRepositoryInterface;
 use Polyctopus\Core\Repositories\ContentVersionRepositoryInterface;
 use DateTimeImmutable;
 
+
 class ContentService
 {
+   private $eventDispatcher = null;
+
     public function __construct(
         private readonly ContentRepositoryInterface $repository,
         private readonly ContentTypeRepositoryInterface $contentTypeRepository,
         private readonly ContentVersionRepositoryInterface $contentVersionRepository,
-        private readonly ContentVariantRepositoryInterface $contentVariantRepository
-    ) {}
+        private readonly ContentVariantRepositoryInterface $contentVariantRepository,
+        ?callable $eventDispatcher = null
+    ) {
+        $this->eventDispatcher = $eventDispatcher;
+    }
 
     public function createContent(string $id, ContentType $contentType, array $data): Content
     {
@@ -42,6 +50,7 @@ class ContentService
         );
 
         $this->repository->save($content);
+        $this->dispatch(new ContentCreated($content));
 
         $version = new ContentVersion(
             id: uniqid('ver_', true),
@@ -208,4 +217,15 @@ class ContentService
         return $this->contentVersionRepository->all();
     }
 
+    private function dispatch(EventInterface $event): void
+    {
+        if ($this->eventDispatcher) {
+            ($this->eventDispatcher)($event);
+        }
+    }
+
+    public function setEventDispatcher(callable $eventDispatcher): void
+    {
+        $this->eventDispatcher = $eventDispatcher;
+    }
 }
