@@ -9,8 +9,6 @@ Polyctopus Core is a lightweight PHP library for managing structured content and
 - In-memory repositories for rapid prototyping and testing
 - Extensible field type system (e.g. Text fields, custom types)
 - Service layer for business logic
-- Type-safe content status using PHP enums (requires PHP 8.1+)
-- Automatic validation of content data against field definitions
 - **Versioning and rollback** for content entries
 - **Content Dimensions**: Support for content variants based on arbitrary dimensions (e.g. brands, channels, campaigns)
 - **Event mechanism** for custom application logic based on triggered events by accepting callbacks
