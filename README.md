@@ -13,7 +13,7 @@ Polyctopus Core is a lightweight PHP library for managing structured content and
 - Automatic validation of content data against field definitions
 - **Versioning and rollback** for content entries
 - **Content Dimensions**: Support for content variants based on arbitrary dimensions (e.g. brands, channels, campaigns)
-  Every create and update operation creates a new version. You can rollback to any previous version at any time.
+- **Event mechanism** for custom application logic based on triggered events by accepting callbacks
 
 ## Requirements
 
