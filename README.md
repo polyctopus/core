@@ -111,30 +111,7 @@ $resolvedDefault = $service->resolveContentWithVariant('c1', 'brand_b');
 
 ## Multilingual Content & Translations
 
-Polyctopus Core supports optional translations for both content and content variants.  
-Translations are identified by a locale string (e.g. `de_DE`, `en_US`).  
-You can add translations for the main content or for any variant.  
-When resolving content for a specific locale, translations are merged over the original data or variant overrides.
-
-**How it works:**
-- Translations are optional and can be added at any time.
-- You can add or update a translation for a content or variant by specifying the entity type (`'content'` or `'variant'`), the entity ID, the locale, and the translated fields.
-- When resolving content with a variant and locale, the service merges the translation fields over the variant (if present) or the original content.
-
-**Example:**
-```php
-// Add a translation for the main content
-$service->contentTranslationService->addOrUpdateTranslation('content', 'c1', 'de_DE', ['title' => 'Hallo Welt']);
-
-// Add a translation for a variant
-$service->contentTranslationService->addOrUpdateTranslation('variant', 'v1', 'de_DE', ['title' => 'Marke A Titel']);
-
-// Resolve content with variant and locale
-$data = $service->resolveContentWithVariantAndLocale('c1', 'brand_a', 'de_DE');
-echo "Resolved content translation for dimension 'brand_a': " . print_r($data, true) . PHP_EOL;
-
-// If no translation exists for the given locale, the original (or variant) data is returned.
-```
+- [Translations](docs/Translations.md)
 
 ## Event Mechanism
 
@@ -198,6 +175,79 @@ try {
     }
 }
 ```
+
+## Asset Handling
+
+Polyctopus Core provides a flexible way to manage and reference assets (such as images, documents, or other files) in your content.  
+Assets are managed independently from content and can be linked to any content entry by storing their IDs in your content data.
+
+### How it works
+
+- **Asset Model:** An `Asset` represents a file with metadata (filename, MIME type, size, storage path, etc.).
+- **Asset Repository Interface:** The `AssetRepositoryInterface` defines how assets are stored, retrieved, and deleted. You can implement this interface for local storage, cloud storage (e.g. S3), or in-memory/testing.
+- **Asset Service:** The `AssetService` provides methods to upload, find, delete, and stream assets.
+
+### Linking Assets to Content
+
+You reference assets in your content by storing their IDs in the content data array.  
+For example, a content entry with an image and a gallery might look like this:
+
+```php
+$data = [
+    'title' => 'Example',
+    'imageId' => 'asset_123',                // Single asset reference
+    'gallery' => ['asset_123', 'asset_456'], // Multiple asset references
+];
+$content = $service->createContent('c1', $contentType, $data);
+```
+
+To retrieve the actual asset objects, use the `AssetService`:
+
+```php
+$imageAsset = $assetService->findAsset($content->getData()['imageId']);
+foreach ($content->getData()['gallery'] as $assetId) {
+    $galleryAsset = $assetService->findAsset($assetId);
+    // ...process asset
+}
+```
+
+### Uploading and Managing Assets
+
+Assets are uploaded and managed via the `AssetService`:
+
+```php
+use Polyctopus\Core\Models\Asset;
+
+// Create an Asset object (metadata)
+$asset = new Asset(
+    id: 'asset_123',
+    filename: 'picture.jpg',
+    mimeType: 'image/jpeg',
+    size: 123456,
+    storagePath: '/uploads/picture.jpg'
+);
+
+// Upload the asset with file content
+$assetService->uploadAsset($asset, $fileContent);
+
+// Delete an asset
+$assetService->deleteAsset('asset_123');
+
+// Get a stream for download or processing
+$stream = $assetService->getAssetStream('asset_123');
+```
+
+### Implementation Note
+
+Polyctopus Core only defines the interface for asset storage (`AssetRepositoryInterface`).  
+You are free to implement this interface for your preferred storage backend (filesystem, cloud, etc.).  
+This keeps your application flexible and decoupled from any specific storage technology.
+
+**Best Practice:**  
+Store only the asset IDs in your content.  
+Use the `AssetService` to resolve asset metadata and file content when needed.
+
+---
 
 ## Extending
 
