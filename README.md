@@ -12,6 +12,8 @@ Polyctopus Core is a lightweight PHP library for managing structured content and
 - **Versioning and rollback** for content entries
 - **Content Dimensions**: Support for content variants based on arbitrary dimensions (e.g. brands, channels, campaigns)
 - **Event mechanism** for custom application logic based on triggered events by accepting callbacks
+- **Structured validation errors** for better error handling
+- **Test utilities** for easy test data setup
 
 ## Requirements
 
@@ -27,7 +29,35 @@ composer require polyctopus/core
 
 ## Usage Example
 
-Simply have a look at the example-usage.php file in the repository for a complete example of how to use the library.
+See the `example-usage.php` file in the repository for a complete example of how to use the library.
+
+## Content Types
+
+Content types define the structure (fields, validation, etc.) for your content entries.  
+You should always create and register a content type before creating content entries of that type.
+
+```php
+use Polyctopus\Core\Services\TestFactory;
+
+// Create a ContentType (e.g. "Article" with a "title" and "contact" field)
+$contentType = TestFactory::contentTypeWithTextField('article');
+$service->createContentType($contentType);
+```
+
+## Creating Content
+
+```php
+use Polyctopus\Core\Models\ContentStatus;
+
+// Create a new Content (valid)
+$content = $service->createContent('c1', $contentType, ['title' => 'Hello', 'contact' => 'info@example.com']);
+echo "Created content: " . print_r($content->toArray(), true) . PHP_EOL;
+
+// Update Content (valid and status change)
+$service->updateContent($content, ContentStatus::Published, ['title' => 'Updated Title', 'contact' => 'info@example.com']);
+$updated = $service->findContent('c1');
+echo "Updated content: " . print_r($updated->toArray(), true) . PHP_EOL;
+```
 
 ## Content Variants (Dimension Overrides)
 
@@ -42,6 +72,8 @@ This is useful if, for example, you want to show a different title or descriptio
 
 **Example:**
 ```php
+use Polyctopus\Core\Models\ContentVariant;
+
 // Create a variant for dimension "brand_a" that overrides the title
 $variant = new ContentVariant(
     id: 'v1',
@@ -49,7 +81,7 @@ $variant = new ContentVariant(
     dimension: 'brand_a',
     overrides: ['title' => 'Brand A Title']
 );
-$contentVariantRepo->save($variant);
+$service->createContentVariant($variant);
 
 // Resolve content for "brand_a"
 $resolved = $service->resolveContentWithVariant('c1', 'brand_a');
@@ -83,7 +115,7 @@ $service->setEventDispatcher(function($event) {
     }
 });
 ```
-This mechanism is lightweight, easy to extend, and does not depend on any
+This mechanism is lightweight, easy to extend, and does not depend on any external framework.
 
 ## Versioning & Rollback
 
@@ -92,18 +124,48 @@ This mechanism is lightweight, easy to extend, and does not depend on any
 - **Rollback:**  
   You can access all versions for a content entry and use the `rollback($contentId, $versionId)` method of the service to restore a previous state.
 
+**Example:**
+```php
+// List all versions for a content entry
+$versions = $service->findContentVersionsByEntityType('content', 'c1');
+foreach ($versions as $version) {
+    echo "- Version ID: {$version->getId()}, Snapshot: " . json_encode($version->toArray()['snapshot']) . PHP_EOL;
+}
+
+// Rollback to the first version
+$firstVersion = reset($versions);
+if ($firstVersion) {
+    $service->rollback('c1', $firstVersion->getId());
+}
+```
+
 ## Validation
 
-When creating or updating content, the service automatically validates the data against the field definitions of the content type. If validation fails (e.g. a string is too long), an `InvalidArgumentException` is thrown.
+When creating or updating content, the service automatically validates the data against the field definitions of the content type.  
+If validation fails (e.g. a string is too long), a `ValidationException` is thrown, containing structured error objects.
+
+**Example:**
+```php
+try {
+    $service->createContent('c2', $contentType, ['title' => str_repeat('A', 300)]);
+} catch (\Polyctopus\Core\Exceptions\ValidationException $e) {
+    foreach ($e->getErrors() as $error) {
+        echo "Field: {$error->field}, Value: " . var_export($error->value, true) . ", Message: {$error->message}\n";
+    }
+}
+```
 
 ## Extending
 
 - Add new field types by implementing `FieldTypeInterface`.
 - Implement your own repositories for persistent storage by extending `ContentRepositoryInterface` and `ContentVersionRepositoryInterface`.
-- Create custom validation rules by implementing `FieldValidationRuleInterface`.
+- Create custom validation rules by implementing `FieldTypeInterface` or custom logic in your service.
+- Use the provided `TestFactory` for easy test data setup in your tests.
 
 ## Contributing
+
 Contributions are welcome! Please create a pull request or open an issue for discussion.
 
 ## License
+
 LGPL-3.0-or-later
