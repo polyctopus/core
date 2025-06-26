@@ -8,6 +8,7 @@ use Polyctopus\Core\Repositories\InMemory\InMemoryContentRepository;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentVariantRepository;
 use Polyctopus\Core\Repositories\InMemory\InMemoryContentVersionRepository;
+use Polyctopus\Core\Repositories\InMemory\InMemoryContentTranslationRepository;
 
 class InMemoryContentServiceFactory
 {
@@ -23,6 +24,7 @@ class InMemoryContentServiceFactory
             new InMemoryContentTypeRepository(),
             new InMemoryContentVersionRepository(),
             new InMemoryContentVariantRepository(),
+            new InMemoryContentTranslationRepository(),
              function(EventInterface $event) {
                 echo $event->getName() . " event dispatched at " . $event->getTimestamp()->format('Y-m-d H:i:s') . "\n";
             

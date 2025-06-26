@@ -35,6 +35,14 @@ $service->updateContent($content, ContentStatus::Published, ['title' => 'Updated
 $updated = $service->findContent('c1');
 echo "Updated content: " . print_r($updated->toArray(), true) . PHP_EOL;
 
+// Übersetzung für Content hinzufügen
+$service->addOrUpdateTranslation('content', 'c1', 'de_DE', ['title' => 'Hallo Welt']);
+
+
+
+// Content mit Übersetzung auflösen
+$data = $service->resolveContentWithVariantAndLocale('c1', 'brand_a', 'de_DE');
+
 // Weitere Updates für Versionierung
 $service->updateContent($content, ContentStatus::Published, ['title' => 'Second Version']);
 $service->updateContent($content, ContentStatus::Published, ['title' => 'Third Version']);
@@ -71,6 +79,11 @@ $service->createContentVariant($variant);
 // resolve content with variant overrides
 $resolvedBrandA = $service->resolveContentWithVariant('c1', 'brand_a');
 echo "Resolved content for dimension 'brand_a': " . print_r($resolvedBrandA, true) . PHP_EOL;
+
+// Übersetzung für Variante hinzufügen
+$service->addOrUpdateTranslation('variant', 'v1', 'de_DE', ['title' => 'Marke A Titel']);
+$data = $service->resolveContentWithVariantAndLocale('c1', 'brand_a', 'de_DE');
+echo "Resolved content translation for dimension 'brand_a': " . print_r($data, true) . PHP_EOL;
 
 // resolve content without variant (default)
 $resolvedDefault = $service->resolveContentWithVariant('c1', 'brand_b');

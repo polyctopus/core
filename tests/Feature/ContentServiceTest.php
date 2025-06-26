@@ -1,9 +1,5 @@
 <?php
 
-use Polyctopus\Core\Services\ContentService;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentRepository;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentVersionRepository;
 use Polyctopus\Core\Models\Content;
 use Polyctopus\Core\Models\ContentStatus;
 use Polyctopus\Core\Models\ContentVariant;
@@ -11,19 +7,11 @@ use Polyctopus\Core\Models\ContentType;
 use Polyctopus\Core\Models\ContentField;
 use Polyctopus\Core\Models\FieldTypes\TextFieldType;
 use Polyctopus\Core\Exceptions\ValidationException;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentVariantRepository;
+use Polyctopus\Core\Services\InMemoryContentServiceFactory;
 
 beforeEach(function () {
-    $this->repo = new InMemoryContentRepository();
-    $this->contentTypeRepo = new InMemoryContentTypeRepository();
-    $this->contentVersionRepo = new InMemoryContentVersionRepository();
-    $this->contentVariantRepo = new InMemoryContentVariantRepository();
-    $this->service = new ContentService(
-        $this->repo,
-        $this->contentTypeRepo,
-        $this->contentVersionRepo,
-        $this->contentVariantRepo
-    );
+    // Initialize repositories and service
+    $this->service = InMemoryContentServiceFactory::create();
 });
 
 it('can create content via ContentService', function () {
@@ -99,7 +87,7 @@ it('throws exception if content data does not match field validation on create',
         settings: ['maxLength' => 5]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $this->contentTypeRepo->save($contentType); 
+    $this->service->createContentType($contentType);
 
     expect(fn() => $this->service->createContent('c5', $contentType, ['title' => 'Too long for field']))
         ->toThrow(ValidationException::class);
@@ -115,7 +103,7 @@ it('throws exception if content data does not match field validation on update',
         settings: ['maxLength' => 5]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $this->contentTypeRepo->save($contentType); 
+    $this->service->createContentType($contentType);
 
     $content = $this->service->createContent('c6', $contentType, ['title' => 'Short']);
     expect(fn() => $this->service->updateContent($content, ContentStatus::Draft, ['title' => 'Too long for field']))
@@ -132,12 +120,11 @@ it('creates a version entry when updating content', function () {
         settings: ['maxLength' => 255]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $this->contentTypeRepo->save($contentType); 
+    $this->service->createContentType($contentType);
     $content = $this->service->createContent('c7', $contentType, ['title' => 'Original']);
 
     $this->service->updateContent($content, ContentStatus::Published, ['title' => 'Changed']);
-
-    $versions = $this->contentVersionRepo->all();
+    $versions = $this->service->listAllContentVersions();
     expect($versions)->toBeArray()
         ->and(count($versions))->toBeGreaterThan(0)
         ->and($versions[array_key_first($versions)])->getSnapshot()->toMatchArray(['title' => 'Original'])
@@ -154,14 +141,14 @@ it('can rollback content to a previous version', function () {
         settings: ['maxLength' => 255]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $this->contentTypeRepo->save($contentType);
+    $this->service->createContentType($contentType);
 
     $content = $this->service->createContent('ct1', $contentType, ['title' => 'First']);
     $this->service->updateContent($content, ContentStatus::Published, ['title' => 'Second']);
     $this->service->updateContent($content, ContentStatus::Published, ['title' => 'Third']);
 
     // Simulate rollback: get first version and restore its snapshot
-    $versions = $this->contentVersionRepo->all();
+    $versions = $this->service->listAllContentVersions();
     $firstVersion = $versions[array_key_first($versions)];
     $this->service->updateContent($content, ContentStatus::Published, $firstVersion->getSnapshot());
 
@@ -179,8 +166,7 @@ it('can resolve content with variant overrides', function () {
         settings: ['maxLength' => 255]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $this->contentTypeRepo->save($contentType);
-
+    $this->service->createContentType($contentType);
     $this->service->createContent('c9', $contentType, ['title' => 'Original Title']);
     
     $variant = new ContentVariant(
@@ -196,4 +182,51 @@ it('can resolve content with variant overrides', function () {
 
     $resolvedDefault = $this->service->resolveContentWithVariant('c9', 'brand_b');
     expect($resolvedDefault)->toBe(['title' => 'Original Title']);
+});
+
+it('can add and resolve translations for content and variants', function () {
+    $field = new ContentField(
+        id: 'f1',
+        contentTypeId: 'ct1',
+        code: 'title',
+        label: 'Title',
+        fieldType: new TextFieldType(),
+        settings: ['maxLength' => 255]
+    );
+    $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
+    $this->service->createContentType($contentType);
+
+    // Content anlegen
+    $content = $this->service->createContent('c10', $contentType, ['title' => 'Original Title']);
+
+    // Übersetzung für Content hinzufügen
+    $this->service->addOrUpdateTranslation('content', 'c10', 'de_DE', ['title' => 'Deutscher Titel']);
+
+    // Content mit Übersetzung auflösen
+    $resolved = $this->service->resolveContentWithVariantAndLocale('c10', '', 'de_DE');
+    expect($resolved)->toBe(['title' => 'Deutscher Titel']);
+
+    // Variante anlegen
+    $variant = new ContentVariant(
+        id: 'v10',
+        contentId: 'c10',
+        dimension: 'brand_x',
+        overrides: ['title' => 'Brand X Title']
+    );
+    $this->service->createContentVariant($variant);
+
+    // Übersetzung für Variante hinzufügen
+    $this->service->addOrUpdateTranslation('variant', 'v10', 'de_DE', ['title' => 'Marke X Titel']);
+
+    // Variante mit Übersetzung auflösen
+    $resolvedVariant = $this->service->resolveContentWithVariantAndLocale('c10', 'brand_x', 'de_DE');
+    expect($resolvedVariant)->toBe(['title' => 'Marke X Titel']);
+
+    // Variante ohne Übersetzung (soll override zeigen)
+    $resolvedVariantNoTrans = $this->service->resolveContentWithVariantAndLocale('c10', 'brand_x', 'fr_FR');
+    expect($resolvedVariantNoTrans)->toBe(['title' => 'Brand X Title']);
+
+    // Content ohne Übersetzung (soll Original zeigen)
+    $resolvedNoTrans = $this->service->resolveContentWithVariantAndLocale('c10', '', 'fr_FR');
+    expect($resolvedNoTrans)->toBe(['title' => 'Original Title']);
 });

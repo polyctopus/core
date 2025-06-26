@@ -17,8 +17,11 @@ use Polyctopus\Core\{
     Repositories\ContentRepositoryInterface,
     Repositories\ContentTypeRepositoryInterface,
     Repositories\ContentVariantRepositoryInterface,
-    Repositories\ContentVersionRepositoryInterface   
+    Repositories\ContentVersionRepositoryInterface,  
+    Repositories\ContentTranslationRepositoryInterface,
+    Models\ContentTranslation
 };
+
 use DateTimeImmutable;
 
 
@@ -31,6 +34,7 @@ class ContentService
         private readonly ContentTypeRepositoryInterface $contentTypeRepository,
         private readonly ContentVersionRepositoryInterface $contentVersionRepository,
         private readonly ContentVariantRepositoryInterface $contentVariantRepository,
+        private ContentTranslationRepositoryInterface $contentTranslationRepository,
         ?callable $eventDispatcher = null
     ) {
         $this->eventDispatcher = $eventDispatcher;
@@ -224,6 +228,52 @@ class ContentService
     public function listAllContentVersions(): array
     {
         return $this->contentVersionRepository->all();
+    }
+
+     public function addOrUpdateTranslation(
+        string $entityType,
+        string $entityId,
+        string $locale,
+        array $fields
+    ): void {
+        $existing = $this->contentTranslationRepository->findByEntityAndLocale($entityType, $entityId, $locale);
+        $translation = new ContentTranslation(
+            $existing?->id ?? uniqid('trans_', true),
+            $entityType,
+            $entityId,
+            $locale,
+            $fields
+        );
+        $this->contentTranslationRepository->save($translation);
+    }
+
+    public function getTranslation(
+        string $entityType,
+        string $entityId,
+        string $locale
+    ): ?ContentTranslation {
+        return $this->contentTranslationRepository->findByEntityAndLocale($entityType, $entityId, $locale);
+    }
+
+     public function resolveContentWithVariantAndLocale(string $contentId, string $dimension, string $locale): ?array
+    {
+        $content = $this->contentRepository->find($contentId);
+        if (!$content) {
+            return null;
+        }
+        $variant = $this->contentVariantRepository->findByContentAndDimension($contentId, $dimension);
+
+        $data = $content->getData();
+        if ($variant) {
+            $data = array_merge($data, $variant->getOverrides());
+            $translation = $this->getTranslation('variant', $variant->getId(), $locale);
+        } else {
+            $translation = $this->getTranslation('content', $contentId, $locale);
+        }
+        if ($translation) {
+            $data = array_merge($data, $translation->getFields());
+        }
+        return $data;
     }
 
     private function dispatch(EventInterface $event): void
