@@ -1,31 +1,41 @@
 {
   "name": "polyctopus/core",
-  "description": "Core library for polyctopus multidimensional content",
+  "description": "A modern, modular PHP library for multidimensional, multilingual content management with versioning, variants, translations, and asset handling.",
   "type": "library",
   "keywords": [
     "polyctopus",
-    "multidimensional",
     "content",
-    "library",
-    "php",
-    "framework",
-    "api",
+    "multidimensional",
+    "multilingual",
     "content management",
     "cms",
-    "data structures",
     "content types",
-    "content models",
-    "content management system",
-    "content management framework",
-    "content management library"
+    "content variants",
+    "translations",
+    "versioning",
+    "assets",
+    "php",
+    "framework",
+    "library"
   ],
+  "homepage": "https://github.com/polyctopus/core",
   "license": "LGPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "Daniel Schmelz",
+      "email": "daniel@schmelz.it"
+    }
+  ],
   "require": {
     "php": ">=8.3"
   },
   "autoload": {
     "psr-4": {
-      "Polyctopus\\Core\\": "src/",
+      "Polyctopus\\Core\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
       "Tests\\": "tests/"
     }
   },
@@ -36,5 +46,9 @@
     "allow-plugins": {
       "pestphp/pest-plugin": true
     }
+  },
+  "support": {
+    "issues": "https://github.com/polyctopus/core/issues",
+    "source": "https://github.com/polyctopus/core"
   }
 }
