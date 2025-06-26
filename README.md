@@ -3,7 +3,6 @@
 Polyctopus Core is a lightweight PHP library for managing structured content and content types, inspired by headless CMS concepts. It provides a flexible, type-safe way to define content models, fields, and to manage content instances in your application.
 
 ## Features
-
 - **Versioning and rollback** for content entries
 - **Content Dimensions**: Support for content variants based on arbitrary dimensions (e.g. brands, channels, campaigns)
 - **Multilingual content and variants**: Optional translations for any content or variant using locales (e.g. `de_DE`)
@@ -12,11 +11,9 @@ Polyctopus Core is a lightweight PHP library for managing structured content and
 - **Test utilities** for easy test data setup
 
 ## Requirements
-
 - PHP 8.3 or higher
 
 ## Installation
-
 Install via Composer (assuming you have a `composer.json`):
 
 ```bash
@@ -24,7 +21,6 @@ composer require polyctopus/core
 ```
 
 ## Service Structure
-
 Polyctopus Core uses a modular service structure for clear separation of concerns:
 
 - `ContentService`: Core operations for content (create, update, delete, rollback, resolve, etc.)
@@ -60,7 +56,6 @@ echo "Updated content: " . print_r($updated->toArray(), true) . PHP_EOL;
 ```
 
 ## Validation
-
 When creating or updating content, the service automatically validates the data against the field definitions of the content type.  
 If validation fails (e.g. a string is too long), a `ValidationException` is thrown, containing structured error objects.
 
@@ -76,12 +71,10 @@ try {
 ```
 
 ## Extending
-
 - Add new field types by implementing `FieldTypeInterface`.
 - Implement your own repositories for persistent storage by extending `ContentRepositoryInterface` and `ContentVersionRepositoryInterface`.
 - Create custom validation rules by implementing `FieldTypeInterface` or custom logic in your service.
 - Use the provided `TestFactory` for easy test data setup in your tests.
-
 
 ## Usage Example
 See the `example-usage.php` file in the repository for a complete example of how to use the library.
