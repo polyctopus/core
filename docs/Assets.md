@@ -68,5 +68,3 @@ This keeps your application flexible and decoupled from any specific storage tec
 **Best Practice:**  
 Store only the asset IDs in your content.  
 Use the `AssetService` to resolve asset metadata and file content when needed.
-
----

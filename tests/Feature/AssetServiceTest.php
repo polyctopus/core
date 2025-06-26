@@ -76,3 +76,63 @@ it('can get an asset stream', function () {
     expect($stream)->not()->toBeNull();
     expect(stream_get_contents($stream))->toBe('stream');
 });
+
+it('stores and retrieves asset metadata', function () {
+    $asset = new Asset(
+        id: 'a6',
+        filename: 'meta.jpg',
+        mimeType: 'image/jpeg',
+        size: 100,
+        storagePath: '/tmp/meta.jpg',
+        meta: ['width' => 800, 'height' => 600]
+    );
+    $this->service->uploadAsset($asset, 'img');
+    $found = $this->service->findAsset('a6');
+    expect($found->meta)->toMatchArray(['width' => 800, 'height' => 600]);
+});
+
+it('can handle large file uploads', function () {
+    $largeContent = str_repeat('A', 1024 * 1024); // 1 MB
+    $asset = new Asset(
+        id: 'a5',
+        filename: 'large.bin',
+        mimeType: 'application/octet-stream',
+        size: strlen($largeContent),
+        storagePath: '/tmp/large.bin'
+    );
+    $this->service->uploadAsset($asset, $largeContent);
+    $stream = $this->service->getAssetStream('a5');
+    expect(strlen(stream_get_contents($stream)))->toBe(1024 * 1024);
+});
+
+it('returns null for unknown asset', function () {
+    expect($this->service->findAsset('doesnotexist'))->toBeNull();
+    expect($this->service->getAssetStream('doesnotexist'))->toBeNull();
+});
+
+it('overwrites an existing asset with the same id', function () {
+    $asset = new Asset(
+        id: 'a4',
+        filename: 'file.txt',
+        mimeType: 'text/plain',
+        size: 4,
+        storagePath: '/tmp/file.txt'
+    );
+    $this->service->uploadAsset($asset, 'old');
+    $this->service->uploadAsset($asset, 'new');
+    $stream = $this->service->getAssetStream('a4');
+    expect(stream_get_contents($stream))->toBe('new');
+});
+
+it('removes stream after asset deletion', function () {
+    $asset = new Asset(
+        id: 'a7',
+        filename: 'delete.txt',
+        mimeType: 'text/plain',
+        size: 3,
+        storagePath: '/tmp/delete.txt'
+    );
+    $this->service->uploadAsset($asset, 'del');
+    $this->service->deleteAsset('a7');
+    expect($this->service->getAssetStream('a7'))->toBeNull();
+});
