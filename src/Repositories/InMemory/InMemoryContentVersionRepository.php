@@ -22,7 +22,7 @@ class InMemoryContentVersionRepository implements ContentVersionRepositoryInterf
 
     public function delete(string $id): void
     {
-        unset($this->storage[$id]);
+        unset($this->versions[$id]);
     }
     
     public function all(): array
