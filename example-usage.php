@@ -4,8 +4,8 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use Polyctopus\Core\Models\ContentStatus;
 use Polyctopus\Core\Models\ContentVariant;
-use Polyctopus\Core\Services\TestFactory;
-use Polyctopus\Core\Services\InMemoryContentServiceFactory;
+use Polyctopus\Core\Factories\TestFactory;
+use Polyctopus\Core\Factories\InMemoryContentServiceFactory;
 
 // Create ContentService
 $service = InMemoryContentServiceFactory::create();

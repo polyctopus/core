@@ -1,6 +1,6 @@
 <?php
 
-namespace Polyctopus\Core\Services;
+namespace Polyctopus\Core\Factories;
 
 use Polyctopus\Core\Models\ContentType;
 use Polyctopus\Core\Models\ContentField;

@@ -1,14 +1,20 @@
 <?php
 
-namespace Polyctopus\Core\Services;
+namespace Polyctopus\Core\Factories;
 
-use Polyctopus\Core\Services\ContentService;
-use Polyctopus\Core\Events\EventInterface;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentRepository;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentTypeRepository;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentVariantRepository;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentVersionRepository;
-use Polyctopus\Core\Repositories\InMemory\InMemoryContentTranslationRepository;
+use Polyctopus\Core\{
+    Repositories\InMemory\InMemoryContentRepository,
+    Repositories\InMemory\InMemoryContentTypeRepository,
+    Repositories\InMemory\InMemoryContentVariantRepository,
+    Repositories\InMemory\InMemoryContentTranslationRepository,
+    Repositories\InMemory\InMemoryContentVersionRepository,
+    Services\ContentService,
+    Services\ContentTypeService,    
+    Services\ContentVariantService,
+    Services\ContentTranslationService,
+    Services\ContentVersionService,
+    Events\EventInterface
+};
 
 class InMemoryContentServiceFactory
 {

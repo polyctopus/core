@@ -7,7 +7,7 @@ use Polyctopus\Core\Models\ContentType;
 use Polyctopus\Core\Models\ContentField;
 use Polyctopus\Core\Models\FieldTypes\TextFieldType;
 use Polyctopus\Core\Exceptions\ValidationException;
-use Polyctopus\Core\Services\InMemoryContentServiceFactory;
+use Polyctopus\Core\Factories\InMemoryContentServiceFactory;
 
 beforeEach(function () {
     // Initialize repositories and service
