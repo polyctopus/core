@@ -7,42 +7,36 @@ use Polyctopus\Core\{
     Events\ContentDeleted,
     Events\ContentUpdated,
     Events\ContentRolledBack,
-    Events\EventInterface,
     Exceptions\ValidationException,
     Models\Content,
     Models\ContentStatus,
-    Models\ContentVariant,
-    Models\ContentVersion,
     Models\ContentType,
-    Repositories\ContentRepositoryInterface,
-    Repositories\ContentTypeRepositoryInterface,
-    Repositories\ContentVariantRepositoryInterface,
-    Repositories\ContentVersionRepositoryInterface,  
-    Repositories\ContentTranslationRepositoryInterface,
-    Models\ContentTranslation
+    Models\ContentVersion,
+    Repositories\ContentRepositoryInterface
 };
 
 use DateTimeImmutable;
 
-
 class ContentService
 {
-   private $eventDispatcher = null;
+    use EventDispatcherTrait;
 
     public function __construct(
         private readonly ContentRepositoryInterface $contentRepository,
-        private readonly ContentTypeRepositoryInterface $contentTypeRepository,
-        private readonly ContentVersionRepositoryInterface $contentVersionRepository,
-        private readonly ContentVariantRepositoryInterface $contentVariantRepository,
-        private ContentTranslationRepositoryInterface $contentTranslationRepository,
+        public readonly ContentTypeService $contentTypeService,
+        public readonly ContentVariantService $contentVariantService,
+        public readonly ContentTranslationService $contentTranslationService,
+        public readonly ContentVersionService $contentVersionService,
         ?callable $eventDispatcher = null
     ) {
-        $this->eventDispatcher = $eventDispatcher;
+        if ($eventDispatcher) {
+            $this->setEventDispatcher($eventDispatcher);
+        }
     }
 
     public function createContent(string $id, ContentType $contentType, array $data): Content
     {
-        $existingType = $this->contentTypeRepository->find($contentType->getId());
+        $existingType = $this->contentTypeService->findContentType($contentType->getId());
         if (!$existingType) {
             throw new \InvalidArgumentException("ContentType '{$contentType->getId()}' does not exist.");
         }
@@ -68,7 +62,7 @@ class ContentService
             snapshot: $content->getData(),
             diff: null
         );
-        $this->contentVersionRepository->save($version);
+        $this->contentVersionService->saveContentVersion($version);
 
         return $content;
     }
@@ -87,7 +81,7 @@ class ContentService
             diff: $diff
         );
         
-        $this->contentVersionRepository->save($version);
+        $this->contentVersionService->saveContentVersion($version);
 
         $content->setStatus($contentStatus);
         $content->setData($newData);
@@ -106,14 +100,10 @@ class ContentService
         $this->dispatch(new ContentDeleted($id));
     }
 
-    public function listContentTypes(): array
-    {
-        return $this->contentTypeRepository->all();
-    }
-
     public function rollback(string $entityId, string $versionId): void
     {
-        $versions = $this->contentVersionRepository->findByEntity('content', $entityId);
+        $versions = $this->contentVersionService->findContentVersionsByEntityType('content', $entityId);
+
         /** @var ContentVersion $version */
         $version = null;
         foreach ($versions as $v) {
@@ -144,7 +134,7 @@ class ContentService
         if (!$content) {
             return null;
         }
-        $variant = $this->contentVariantRepository->findByContentAndDimension($contentId, $dimension);
+        $variant = $this->contentVariantService->findContentVariant($contentId, $dimension);
 
         $data = $content->getData();
         if ($variant) {
@@ -171,120 +161,25 @@ class ContentService
         }
     }
 
-     public function createContentType(ContentType $contentType): void
-    {
-        if ($this->contentTypeRepository->find($contentType->getId())) {
-            throw new \InvalidArgumentException("ContentType '{$contentType->getId()}' already exists.");
-        }
-        $this->contentTypeRepository->save($contentType);
-    }
-
-    public function updateContentType(ContentType $contentType): void
-    {
-        if (! $this->contentTypeRepository->find($contentType->getId())) {
-            throw new \InvalidArgumentException("ContentType '{$contentType->getId()}' does not exist.");
-        }
-        $this->contentTypeRepository->save($contentType);
-    }
-
-    public function deleteContentType(string $contentTypeId): void
-    {
-        if (! $this->contentTypeRepository->find($contentTypeId)) {
-            throw new \InvalidArgumentException("ContentType '{$contentTypeId}' does not exist.");
-        }
-        $this->contentTypeRepository->delete($contentTypeId);
-    }
-
-    public function findContentType(string $contentTypeId): ?ContentType
-    {
-        return $this->contentTypeRepository->find($contentTypeId);
-    }
-
-    public function findContentVariant(string $contentId, string $dimension): ?ContentVariant
-    {
-        return $this->contentVariantRepository->findByContentAndDimension($contentId, $dimension);
-    }
-
-    public function createContentVariant(ContentVariant $variant): void
-    {
-        $this->contentVariantRepository->save($variant);
-    }
-
-    public function deleteContentVariant(string $variantId): void
-    {
-        $this->contentVariantRepository->delete($variantId);
-    }
-
-    public function findContentVersionsByEntityType(string $entityType, string $entityId): array
-    {
-        return $this->contentVersionRepository->findByEntity($entityType, $entityId);
-    }
-
-    public function saveContentVersion(ContentVersion $version): void
-    {
-        $this->contentVersionRepository->save($version);
-    }
-
-    public function listAllContentVersions(): array
-    {
-        return $this->contentVersionRepository->all();
-    }
-
-     public function addOrUpdateTranslation(
-        string $entityType,
-        string $entityId,
-        string $locale,
-        array $fields
-    ): void {
-        $existing = $this->contentTranslationRepository->findByEntityAndLocale($entityType, $entityId, $locale);
-        $translation = new ContentTranslation(
-            $existing?->id ?? uniqid('trans_', true),
-            $entityType,
-            $entityId,
-            $locale,
-            $fields
-        );
-        $this->contentTranslationRepository->save($translation);
-    }
-
-    public function getTranslation(
-        string $entityType,
-        string $entityId,
-        string $locale
-    ): ?ContentTranslation {
-        return $this->contentTranslationRepository->findByEntityAndLocale($entityType, $entityId, $locale);
-    }
-
-     public function resolveContentWithVariantAndLocale(string $contentId, string $dimension, string $locale): ?array
+    public function resolveContentWithVariantAndLocale(string $contentId, string $dimension, string $locale): ?array
     {
         $content = $this->contentRepository->find($contentId);
         if (!$content) {
             return null;
         }
-        $variant = $this->contentVariantRepository->findByContentAndDimension($contentId, $dimension);
+
+        $variant = $this->contentVariantService->findContentVariant($contentId, $dimension);
 
         $data = $content->getData();
         if ($variant) {
             $data = array_merge($data, $variant->getOverrides());
-            $translation = $this->getTranslation('variant', $variant->getId(), $locale);
+            $translation = $this->contentTranslationService->getTranslation('variant', $variant->getId(), $locale);
         } else {
-            $translation = $this->getTranslation('content', $contentId, $locale);
+            $translation = $this->contentTranslationService->getTranslation('content', $contentId, $locale);
         }
         if ($translation) {
             $data = array_merge($data, $translation->getFields());
         }
         return $data;
-    }
-
-    private function dispatch(EventInterface $event): void
-    {
-        if ($this->eventDispatcher) {
-            ($this->eventDispatcher)($event);
-        }
-    }
-
-    public function setEventDispatcher(callable $eventDispatcher): void
-    {
-        $this->eventDispatcher = $eventDispatcher;
     }
 }

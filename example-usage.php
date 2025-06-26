@@ -13,7 +13,7 @@ $service = InMemoryContentServiceFactory::create();
 // Create a ContentType (e.g. "Article" with a "title" field using the TestFactory)
 $contentType = TestFactory::contentTypeWithTextField('article');
 
-$service->createContentType($contentType);
+$service->contentTypeService->createContentType($contentType);
 
 // Create a new Content (invalid)
 try {
@@ -36,7 +36,7 @@ $updated = $service->findContent('c1');
 echo "Updated content: " . print_r($updated->toArray(), true) . PHP_EOL;
 
 // Übersetzung für Content hinzufügen
-$service->addOrUpdateTranslation('content', 'c1', 'de_DE', ['title' => 'Hallo Welt']);
+$service->contentTranslationService->addOrUpdateTranslation('content', 'c1', 'de_DE', ['title' => 'Hallo Welt']);
 
 
 
@@ -49,7 +49,7 @@ $service->updateContent($content, ContentStatus::Published, ['title' => 'Third V
 echo "Content after more updates: " . print_r($service->findContent('c1')->toArray(), true) . PHP_EOL;
 
 // Zeige alle Versionen
-$versions = $service->findContentVersionsByEntityType('content', 'c1');
+$versions = $service->contentVersionService->findContentVersionsByEntityType('content', 'c1');
 echo "Available versions for content c1:" . PHP_EOL;
 foreach ($versions as $version) {
     echo "- Version ID: {$version->getId()}, Snapshot: " . json_encode($version->toArray()['snapshot']) . PHP_EOL;
@@ -74,14 +74,14 @@ $variant = new ContentVariant(
     dimension: 'brand_a',
     overrides: ['title' => 'Brand A Title']
 );
-$service->createContentVariant($variant);
+$service->contentVariantService->createContentVariant($variant);
 
 // resolve content with variant overrides
 $resolvedBrandA = $service->resolveContentWithVariant('c1', 'brand_a');
 echo "Resolved content for dimension 'brand_a': " . print_r($resolvedBrandA, true) . PHP_EOL;
 
 // Übersetzung für Variante hinzufügen
-$service->addOrUpdateTranslation('variant', 'v1', 'de_DE', ['title' => 'Marke A Titel']);
+$service->contentTranslationService->addOrUpdateTranslation('variant', 'v1', 'de_DE', ['title' => 'Marke A Titel']);
 $data = $service->resolveContentWithVariantAndLocale('c1', 'brand_a', 'de_DE');
 echo "Resolved content translation for dimension 'brand_a': " . print_r($data, true) . PHP_EOL;
 
@@ -93,7 +93,7 @@ echo "Resolved content for dimension 'brand_b' (no variant): " . print_r($resolv
 
 // List all ContentTypes
 echo "Listing all content types:" . PHP_EOL;
-$contentTypes = $service->listContentTypes();
+$contentTypes = $service->contentTypeService->listContentTypes();
 echo "Available content types:" . PHP_EOL;
 foreach ($contentTypes as $ct) {
     echo "- {$ct->getId()}: {$ct->getLabel()}" . PHP_EOL;

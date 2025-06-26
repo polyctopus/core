@@ -27,6 +27,27 @@ composer require polyctopus/core
 
 See the `example-usage.php` file in the repository for a complete example of how to use the library.
 
+## Service Structure
+
+Polyctopus Core uses a modular service structure for clear separation of concerns:
+
+- `ContentService`: Core operations for content (create, update, delete, rollback, resolve, etc.)
+- `ContentTypeService`: Manage content types (create, update, delete, list)
+- `ContentVariantService`: Manage content variants for dimensions
+- `ContentTranslationService`: Manage translations for content and variants
+- `ContentVersionService`: Manage content versioning and rollback
+
+You typically obtain all services pre-wired via the `InMemoryContentServiceFactory` or a similar factory.
+The ContentService is the main entry point for all operations, and it uses the other services internally.
+
+**Example:**
+```php
+use Polyctopus\Core\Services\InMemoryContentServiceFactory;
+
+$service = InMemoryContentServiceFactory::create(); // returns a ContentService with all dependencies
+$service->contentTypeService->createContentType(TestFactory::contentTypeWithTextField('article'));
+```
+
 ## Content Types
 
 Content types define the structure (fields, validation, etc.) for your content entries.  
@@ -37,7 +58,7 @@ use Polyctopus\Core\Services\TestFactory;
 
 // Create a ContentType (e.g. "Article" with a "title" and "contact" field)
 $contentType = TestFactory::contentTypeWithTextField('article');
-$service->createContentType($contentType);
+$service->contentTypeService->createContentType($contentType);
 ```
 
 ## Creating Content
@@ -77,7 +98,7 @@ $variant = new ContentVariant(
     dimension: 'brand_a',
     overrides: ['title' => 'Brand A Title']
 );
-$service->createContentVariant($variant);
+$service->contentVariantService->createContentVariant($variant);
 
 // Resolve content for "brand_a"
 $resolved = $service->resolveContentWithVariant('c1', 'brand_a');
@@ -103,10 +124,10 @@ When resolving content for a specific locale, translations are merged over the o
 **Example:**
 ```php
 // Add a translation for the main content
-$service->addOrUpdateTranslation('content', 'c1', 'de_DE', ['title' => 'Hallo Welt']);
+$service->contentTranslationService->addOrUpdateTranslation('content', 'c1', 'de_DE', ['title' => 'Hallo Welt']);
 
 // Add a translation for a variant
-$service->addOrUpdateTranslation('variant', 'v1', 'de_DE', ['title' => 'Marke A Titel']);
+$service->contentTranslationService->addOrUpdateTranslation('variant', 'v1', 'de_DE', ['title' => 'Marke A Titel']);
 
 // Resolve content with variant and locale
 $data = $service->resolveContentWithVariantAndLocale('c1', 'brand_a', 'de_DE');
@@ -150,7 +171,7 @@ This mechanism is lightweight, easy to extend, and does not depend on any extern
 **Example:**
 ```php
 // List all versions for a content entry
-$versions = $service->findContentVersionsByEntityType('content', 'c1');
+$versions = $service->contentVersionService->findContentVersionsByEntityType('content', 'c1');
 foreach ($versions as $version) {
     echo "- Version ID: {$version->getId()}, Snapshot: " . json_encode($version->toArray()['snapshot']) . PHP_EOL;
 }

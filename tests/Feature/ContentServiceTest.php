@@ -16,7 +16,7 @@ beforeEach(function () {
 
 it('can create content via ContentService', function () {
     $contentType = new ContentType('ct1', 'ctype_1', 'Label');
-    $this->service->createContentType($contentType); 
+    $this->service->contentTypeService->createContentType($contentType); 
     $content = $this->service->createContent('ct1', $contentType, ['title' => 'Test']);
 
     expect($content)->toBeInstanceOf(Content::class)
@@ -28,7 +28,7 @@ it('can create content via ContentService', function () {
 
 it('can update content via ContentService', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
-    $this->service->createContentType($contentType); 
+    $this->service->contentTypeService->createContentType($contentType); 
     $content = $this->service->createContent('c2', $contentType, ['title' => 'Old']);
     $this->service->updateContent($content, ContentStatus::Published, ['title' => 'New']);
 
@@ -39,7 +39,7 @@ it('can update content via ContentService', function () {
 
 it('can find content via ContentService', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
-    $this->service->createContentType($contentType); 
+    $this->service->contentTypeService->createContentType($contentType); 
     $this->service->createContent('c3', $contentType, ['foo' => 'bar']);
     $found = $this->service->findContent('c3');
 
@@ -49,7 +49,7 @@ it('can find content via ContentService', function () {
 
 it('can delete content via ContentService', function () {
     $contentType = new ContentType('ct1', 'Type 1', 'Label');
-    $this->service->createContentType($contentType); 
+    $this->service->contentTypeService->createContentType($contentType); 
     $this->service->createContent('c4', $contentType, ['x' => 1]);
 
     expect($this->service->findContent('c4'))->not->toBeNull();
@@ -62,10 +62,10 @@ it('can list all content types via ContentService', function () {
 
     $type1 = new ContentType('ct1', 'Type 1', 'Label 1');
     $type2 = new ContentType('ct2', 'Type 2', 'Label 2');
-    $this->service->createContentType($type1);
-    $this->service->createContentType($type2);
+    $this->service->contentTypeService->createContentType($type1);
+    $this->service->contentTypeService->createContentType($type2);
 
-    $types = $this->service->listContentTypes();
+    $types = $this->service->contentTypeService->listContentTypes();
 
     $ids = array_map(fn($type) => $type->getId(), $types);
 
@@ -87,7 +87,7 @@ it('throws exception if content data does not match field validation on create',
         settings: ['maxLength' => 5]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $this->service->createContentType($contentType);
+    $this->service->contentTypeService->createContentType($contentType);
 
     expect(fn() => $this->service->createContent('c5', $contentType, ['title' => 'Too long for field']))
         ->toThrow(ValidationException::class);
@@ -103,7 +103,7 @@ it('throws exception if content data does not match field validation on update',
         settings: ['maxLength' => 5]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $this->service->createContentType($contentType);
+    $this->service->contentTypeService->createContentType($contentType);
 
     $content = $this->service->createContent('c6', $contentType, ['title' => 'Short']);
     expect(fn() => $this->service->updateContent($content, ContentStatus::Draft, ['title' => 'Too long for field']))
@@ -120,11 +120,11 @@ it('creates a version entry when updating content', function () {
         settings: ['maxLength' => 255]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $this->service->createContentType($contentType);
+    $this->service->contentTypeService->createContentType($contentType);
     $content = $this->service->createContent('c7', $contentType, ['title' => 'Original']);
 
     $this->service->updateContent($content, ContentStatus::Published, ['title' => 'Changed']);
-    $versions = $this->service->listAllContentVersions();
+    $versions = $this->service->contentVersionService->listAllContentVersions();
     expect($versions)->toBeArray()
         ->and(count($versions))->toBeGreaterThan(0)
         ->and($versions[array_key_first($versions)])->getSnapshot()->toMatchArray(['title' => 'Original'])
@@ -141,14 +141,14 @@ it('can rollback content to a previous version', function () {
         settings: ['maxLength' => 255]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $this->service->createContentType($contentType);
+    $this->service->contentTypeService->createContentType($contentType);
 
     $content = $this->service->createContent('ct1', $contentType, ['title' => 'First']);
     $this->service->updateContent($content, ContentStatus::Published, ['title' => 'Second']);
     $this->service->updateContent($content, ContentStatus::Published, ['title' => 'Third']);
 
     // Simulate rollback: get first version and restore its snapshot
-    $versions = $this->service->listAllContentVersions();
+    $versions = $this->service->contentVersionService->listAllContentVersions();
     $firstVersion = $versions[array_key_first($versions)];
     $this->service->updateContent($content, ContentStatus::Published, $firstVersion->getSnapshot());
 
@@ -166,7 +166,7 @@ it('can resolve content with variant overrides', function () {
         settings: ['maxLength' => 255]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $this->service->createContentType($contentType);
+    $this->service->contentTypeService->createContentType($contentType);
     $this->service->createContent('c9', $contentType, ['title' => 'Original Title']);
     
     $variant = new ContentVariant(
@@ -175,7 +175,7 @@ it('can resolve content with variant overrides', function () {
         dimension: 'brand_a',
         overrides: ['title' => 'Brand A Title']
     );
-    $this->service->createContentVariant($variant);
+    $this->service->contentVariantService->createContentVariant($variant);
 
     $resolved = $this->service->resolveContentWithVariant('c9', 'brand_a');
     expect($resolved)->toBe(['title' => 'Brand A Title']);
@@ -194,13 +194,13 @@ it('can add and resolve translations for content and variants', function () {
         settings: ['maxLength' => 255]
     );
     $contentType = new ContentType('ct1', 'Type 1', 'Label', [$field]);
-    $this->service->createContentType($contentType);
+    $this->service->contentTypeService->createContentType($contentType);
 
     // Content anlegen
     $content = $this->service->createContent('c10', $contentType, ['title' => 'Original Title']);
 
     // Übersetzung für Content hinzufügen
-    $this->service->addOrUpdateTranslation('content', 'c10', 'de_DE', ['title' => 'Deutscher Titel']);
+    $this->service->contentTranslationService->addOrUpdateTranslation('content', 'c10', 'de_DE', ['title' => 'Deutscher Titel']);
 
     // Content mit Übersetzung auflösen
     $resolved = $this->service->resolveContentWithVariantAndLocale('c10', '', 'de_DE');
@@ -213,10 +213,10 @@ it('can add and resolve translations for content and variants', function () {
         dimension: 'brand_x',
         overrides: ['title' => 'Brand X Title']
     );
-    $this->service->createContentVariant($variant);
+    $this->service->contentVariantService->createContentVariant($variant);
 
     // Übersetzung für Variante hinzufügen
-    $this->service->addOrUpdateTranslation('variant', 'v10', 'de_DE', ['title' => 'Marke X Titel']);
+    $this->service->contentTranslationService->addOrUpdateTranslation('variant', 'v10', 'de_DE', ['title' => 'Marke X Titel']);
 
     // Variante mit Übersetzung auflösen
     $resolvedVariant = $this->service->resolveContentWithVariantAndLocale('c10', 'brand_x', 'de_DE');

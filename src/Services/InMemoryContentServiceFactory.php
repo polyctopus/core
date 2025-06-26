@@ -20,11 +20,19 @@ class InMemoryContentServiceFactory
     public static function create(): ContentService
     {
         return  new ContentService(
-            new InMemoryContentRepository(), 
-            new InMemoryContentTypeRepository(),
-            new InMemoryContentVersionRepository(),
-            new InMemoryContentVariantRepository(),
-            new InMemoryContentTranslationRepository(),
+             new InMemoryContentRepository(),
+             new ContentTypeService(
+                new InMemoryContentTypeRepository()
+             ),
+             new ContentVariantService(
+                new InMemoryContentVariantRepository()
+            ),    
+            new ContentTranslationService(
+                new InMemoryContentTranslationRepository()
+            ), 
+            new ContentVersionService(
+                new InMemoryContentVersionRepository()
+            ),        
              function(EventInterface $event) {
                 echo $event->getName() . " event dispatched at " . $event->getTimestamp()->format('Y-m-d H:i:s') . "\n";
             
