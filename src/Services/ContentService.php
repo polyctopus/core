@@ -16,6 +16,7 @@ use Polyctopus\Core\{
 };
 
 use DateTimeImmutable;
+use Polyctopus\Core\Models\EntityType;
 
 class ContentService
 {
@@ -173,9 +174,9 @@ class ContentService
         $data = $content->getData();
         if ($variant) {
             $data = array_merge($data, $variant->getOverrides());
-            $translation = $this->contentTranslationService->getTranslation('variant', $variant->getId(), $locale);
+            $translation = $this->contentTranslationService->getTranslation(EntityType::Variant, $variant->getId(), $locale);
         } else {
-            $translation = $this->contentTranslationService->getTranslation('content', $contentId, $locale);
+            $translation = $this->contentTranslationService->getTranslation(EntityType::Content, $contentId, $locale);
         }
         if ($translation) {
             $data = array_merge($data, $translation->getFields());

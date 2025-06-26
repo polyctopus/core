@@ -40,8 +40,7 @@ class InMemoryContentServiceFactory
                 new InMemoryContentVersionRepository()
             ),        
              function(EventInterface $event) {
-                echo $event->getName() . " event dispatched at " . $event->getTimestamp()->format('Y-m-d H:i:s') . "\n";
-            
+                       
             }
         );
     }

@@ -1,17 +1,13 @@
 <?php
-// src/Models/ContentField.php
+
 namespace Polyctopus\Core\Models;
 
 use DateTimeImmutable;
 use Polyctopus\Core\Models\FieldTypes\FieldTypeInterface;
 
-/**
- * Represents a field in a content type.
- * Fields can have different types (e.g., text, number, date) and settings.
- */
-class ContentField
+readonly final class ContentField
 {
-    public const FIELD_TYPE_TEXT = 'Text';
+    public const string FIELD_TYPE_TEXT = 'Text';
 
     public function __construct(
         public readonly string $id,
@@ -45,7 +41,6 @@ class ContentField
         ];
     }
 
-    // Helper-Methode:
     private function getFieldTypeName(): string
     {
         return match (get_class($this->fieldType)) {

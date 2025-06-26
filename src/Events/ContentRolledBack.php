@@ -5,7 +5,7 @@ namespace Polyctopus\Core\Events;
 use Polyctopus\Core\Models\Content;
 use Polyctopus\Core\Models\ContentVersion;
 
-class ContentRolledBack implements EventInterface
+final class ContentRolledBack implements EventInterface
 {
     public function __construct(
         public Content $content,

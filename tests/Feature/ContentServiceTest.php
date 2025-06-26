@@ -8,6 +8,7 @@ use Polyctopus\Core\Models\ContentField;
 use Polyctopus\Core\Models\FieldTypes\TextFieldType;
 use Polyctopus\Core\Exceptions\ValidationException;
 use Polyctopus\Core\Factories\InMemoryContentServiceFactory;
+use Polyctopus\Core\Models\EntityType;
 
 beforeEach(function () {
     // Initialize repositories and service
@@ -200,7 +201,7 @@ it('can add and resolve translations for content and variants', function () {
     $content = $this->service->createContent('c10', $contentType, ['title' => 'Original Title']);
 
     // Übersetzung für Content hinzufügen
-    $this->service->contentTranslationService->addOrUpdateTranslation('content', 'c10', 'de_DE', ['title' => 'Deutscher Titel']);
+    $this->service->contentTranslationService->addOrUpdateTranslation(EntityType::Content, 'c10', 'de_DE', ['title' => 'Deutscher Titel']);
 
     // Content mit Übersetzung auflösen
     $resolved = $this->service->resolveContentWithVariantAndLocale('c10', '', 'de_DE');
@@ -216,7 +217,7 @@ it('can add and resolve translations for content and variants', function () {
     $this->service->contentVariantService->createContentVariant($variant);
 
     // Übersetzung für Variante hinzufügen
-    $this->service->contentTranslationService->addOrUpdateTranslation('variant', 'v10', 'de_DE', ['title' => 'Marke X Titel']);
+    $this->service->contentTranslationService->addOrUpdateTranslation(EntityType::Variant, 'v10', 'de_DE', ['title' => 'Marke X Titel']);
 
     // Variante mit Übersetzung auflösen
     $resolvedVariant = $this->service->resolveContentWithVariantAndLocale('c10', 'brand_x', 'de_DE');

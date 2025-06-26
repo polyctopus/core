@@ -4,7 +4,7 @@ namespace Polyctopus\Core\Events;
 
 use Polyctopus\Core\Models\Content;
 
-class ContentCreated implements EventInterface
+final class ContentCreated implements EventInterface
 {
     public function __construct(
         public readonly Content $content,

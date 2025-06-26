@@ -2,7 +2,7 @@
 
 namespace Polyctopus\Core\Events;
 
-class ContentDeleted implements EventInterface
+final class ContentDeleted implements EventInterface
 {
     public function __construct(
         public string $id,

@@ -3,6 +3,7 @@ namespace Polyctopus\Core\Services;
 
 use Polyctopus\Core\Models\ContentTranslation;
 use Polyctopus\Core\Repositories\ContentTranslationRepositoryInterface;
+use Polyctopus\Core\Models\EntityType;
 
 final class ContentTranslationService
 {
@@ -11,15 +12,15 @@ final class ContentTranslationService
     ) {}
 
     public function addOrUpdateTranslation(
-        string $entityType,
+        EntityType $entityType,
         string $entityId,
         string $locale,
         array $fields
     ): void {
-        $existing = $this->contentTranslationRepository->findByEntityAndLocale($entityType, $entityId, $locale);
+        $existing = $this->contentTranslationRepository->findByEntityAndLocale($entityType->value, $entityId, $locale);
         $translation = new ContentTranslation(
             $existing?->id ?? uniqid('trans_', true),
-            $entityType,
+            $entityType->value,
             $entityId,
             $locale,
             $fields
@@ -28,10 +29,10 @@ final class ContentTranslationService
     }
 
     public function getTranslation(
-        string $entityType,
+        EntityType $entityType,
         string $entityId,
         string $locale
     ): ?ContentTranslation {
-        return $this->contentTranslationRepository->findByEntityAndLocale($entityType, $entityId, $locale);
+        return $this->contentTranslationRepository->findByEntityAndLocale($entityType->value, $entityId, $locale);
     }
 }

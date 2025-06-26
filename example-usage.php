@@ -2,10 +2,13 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Polyctopus\Core\Models\ContentStatus;
-use Polyctopus\Core\Models\ContentVariant;
-use Polyctopus\Core\Factories\TestFactory;
-use Polyctopus\Core\Factories\InMemoryContentServiceFactory;
+use Polyctopus\Core\{
+    Models\ContentVariant,
+    Models\ContentStatus,
+    Models\EntityType,
+    Factories\InMemoryContentServiceFactory,
+    Factories\TestFactory,
+};
 
 // Create ContentService
 $service = InMemoryContentServiceFactory::create();
@@ -36,9 +39,7 @@ $updated = $service->findContent('c1');
 echo "Updated content: " . print_r($updated->toArray(), true) . PHP_EOL;
 
 // Übersetzung für Content hinzufügen
-$service->contentTranslationService->addOrUpdateTranslation('content', 'c1', 'de_DE', ['title' => 'Hallo Welt']);
-
-
+$service->contentTranslationService->addOrUpdateTranslation(EntityType::Content, 'c1', 'de_DE', ['title' => 'Hallo Welt']);
 
 // Content mit Übersetzung auflösen
 $data = $service->resolveContentWithVariantAndLocale('c1', 'brand_a', 'de_DE');
@@ -81,15 +82,13 @@ $resolvedBrandA = $service->resolveContentWithVariant('c1', 'brand_a');
 echo "Resolved content for dimension 'brand_a': " . print_r($resolvedBrandA, true) . PHP_EOL;
 
 // Übersetzung für Variante hinzufügen
-$service->contentTranslationService->addOrUpdateTranslation('variant', 'v1', 'de_DE', ['title' => 'Marke A Titel']);
+$service->contentTranslationService->addOrUpdateTranslation(EntityType::Variant, 'v1', 'de_DE', ['title' => 'Marke A Titel']);
 $data = $service->resolveContentWithVariantAndLocale('c1', 'brand_a', 'de_DE');
 echo "Resolved content translation for dimension 'brand_a': " . print_r($data, true) . PHP_EOL;
 
 // resolve content without variant (default)
 $resolvedDefault = $service->resolveContentWithVariant('c1', 'brand_b');
 echo "Resolved content for dimension 'brand_b' (no variant): " . print_r($resolvedDefault, true) . PHP_EOL;
-
-
 
 // List all ContentTypes
 echo "Listing all content types:" . PHP_EOL;
