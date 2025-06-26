@@ -7,15 +7,11 @@ use Polyctopus\Core\Models\ContentVersion;
 
 class ContentRolledBack implements EventInterface
 {
-    public Content $content;
-    public ContentVersion $version;
-    protected \DateTimeImmutable $timestamp;
-
-    public function __construct(Content $content, ContentVersion $version) {
-        $this->content = $content;
-        $this->version = $version;
-        $this->timestamp = new \DateTimeImmutable();
-    }
+    public function __construct(
+        public Content $content,
+        public ContentVersion $version,
+        protected \DateTimeImmutable $timestamp = new \DateTimeImmutable()
+    ) {}
 
     public function getName(): string
     {

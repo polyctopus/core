@@ -4,13 +4,10 @@ namespace Polyctopus\Core\Events;
 
 class ContentDeleted implements EventInterface
 {
-    public string $id;
-    protected \DateTimeImmutable $timestamp;
-
-    public function __construct(string $id) {
-        $this->id = $id;
-        $this->timestamp = new \DateTimeImmutable();
-    }
+    public function __construct(
+        public string $id,
+        protected \DateTimeImmutable $timestamp = new \DateTimeImmutable()
+    ) {}
 
     public function getName(): string
     {
