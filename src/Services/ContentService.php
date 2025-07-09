@@ -101,6 +101,15 @@ class ContentService
         $this->dispatch(new ContentDeleted($id));
     }
 
+    public function isContentCurrentlyPublished(Content $content): bool
+    {
+        $now = new \DateTimeImmutable();
+        $start = $content->getPublishStart();
+        $end = $content->getPublishEnd();
+
+        return (!$start || $now >= $start) && (!$end || $now <= $end);
+    }
+
     public function rollback(string $entityId, string $versionId): void
     {
         $versions = $this->contentVersionService->findContentVersionsByEntityType('content', $entityId);

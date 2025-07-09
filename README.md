@@ -88,6 +88,9 @@ See the `example-usage.php` file in the repository for a complete example of how
 ## Multilingual Content & Translations
 - [Translations](docs/Translations.md)
 
+## Publish Scheduling
+- [Publish Start & End Dates](docs/Publishing.md)
+
 ## Event Mechanism
 - [Events](docs/Events.md)
 

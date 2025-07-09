@@ -231,3 +231,31 @@ it('can add and resolve translations for content and variants', function () {
     $resolvedNoTrans = $this->service->resolveContentWithVariantAndLocale('c10', '', 'fr_FR');
     expect($resolvedNoTrans)->toBe(['title' => 'Original Title']);
 });
+
+it('can handle publish start and end dates for content', function () {
+    $contentType = new ContentType('ct_pub', 'publish', 'Publish Test');
+    $this->service->contentTypeService->createContentType($contentType);
+
+    $content = $this->service->createContent('pub1', $contentType, ['title' => 'Publish Test']);
+
+    // Setze Publish-Start auf jetzt minus 1 Stunde, End auf jetzt plus 1 Stunde
+    $now = new DateTimeImmutable();
+    $content->setPublishStart($now->modify('-1 hour'));
+    $content->setPublishEnd($now->modify('+1 hour'));
+
+    expect($this->service->isContentCurrentlyPublished($content))->toBeTrue();
+
+    // Setze Publish-Start auf jetzt plus 1 Stunde (zukünftig)
+    $content->setPublishStart($now->modify('+1 hour'));
+    expect($this->service->isContentCurrentlyPublished($content))->toBeFalse();
+
+    // Setze Publish-End auf jetzt minus 1 Stunde (bereits abgelaufen)
+    $content->setPublishStart($now->modify('-2 hour'));
+    $content->setPublishEnd($now->modify('-1 hour'));
+    expect($this->service->isContentCurrentlyPublished($content))->toBeFalse();
+
+    // Ohne Start/End ist Content immer veröffentlicht
+    $content->setPublishStart(null);
+    $content->setPublishEnd(null);
+    expect($this->service->isContentCurrentlyPublished($content))->toBeTrue();
+});
